@@ -1,0 +1,70 @@
+{
+  "family": "seedmart",
+  "networkMode": "awsvpc",
+  "executionRoleArn": "arn:aws:iam::778803818421:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "frontend",
+      "image": "778803818421.dkr.ecr.us-east-1.amazonaws.com/seedmart/frontend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/seedmart",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "frontend"
+        }
+      }
+    },
+    {
+      "name": "backend",
+      "image": "778803818421.dkr.ecr.us-east-1.amazonaws.com/seedmart/backend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "hostPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "FLASK_ENV",
+          "value": "production"
+        },
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql://kdlgates:Forced678!@seedmart.cuh4cg8i65bv.us-east-1.rds.amazonaws.com:5432/seedmart"
+        },
+        {
+          "name": "SECRET_KEY",
+          "value": "Gb5BCjvDoaGCnAZ/iDy458OPYAtfO9AZMYOiLJep"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/seedmart",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "backend"
+        }
+      }
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512"
+}
