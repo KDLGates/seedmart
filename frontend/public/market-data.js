@@ -784,6 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTrendingLists(data);
     updateMarketTable(data);
     
+    // Initialize trade buttons after the table is populated
+    initializeTradeButtons();
+    
     // Simulate real-time ticker updates
     startRealtimeTicker();
   }
@@ -970,4 +973,196 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize on page load
   initMarketView();
+
+  // Handle unfinished features
+  function initializeUnfinishedFeatures() {
+    // Trade button functionality
+    const tradeButtons = document.querySelectorAll('.trade-btn, button[data-action="trade"]');
+    tradeButtons.forEach(btn => {
+      btn.classList.add('feature-coming-soon', 'disabled');
+      
+      // Add tooltip
+      const tooltip = document.createElement('span');
+      tooltip.className = 'tooltip';
+      tooltip.textContent = 'Trading feature coming soon';
+      btn.appendChild(tooltip);
+      
+      // Add click handler for feature announcement
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        showFeatureAnnouncement('Seed Trading', 'Not Yet Implemented');
+      });
+    });
+    
+    // Password reset functionality
+    const resetLinks = document.querySelectorAll('a[href*="reset-password"], .forgot-password');
+    resetLinks.forEach(link => {
+      link.classList.add('feature-coming-soon');
+      
+      // Add tooltip
+      const tooltip = document.createElement('span');
+      tooltip.className = 'tooltip';
+      tooltip.textContent = 'Reset feature coming soon';
+      link.appendChild(tooltip);
+      
+      // Add click handler
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        showFeatureAnnouncement('Password Reset', 'Not Yet Implemented');
+      });
+    });
+    
+    // For registration links that aren't implemented
+    const profileLinks = document.querySelectorAll('a[href*="profile"]');
+    profileLinks.forEach(link => {
+      link.classList.add('feature-coming-soon');
+      
+      // Add tooltip
+      const tooltip = document.createElement('span');
+      tooltip.className = 'tooltip';
+      tooltip.textContent = 'Profile feature coming soon';
+      link.appendChild(tooltip);
+      
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        showFeatureAnnouncement('User Profiles', 'Not Yet Implemented');
+      });
+    });
+    
+    // Also handle links with Profile text content
+    document.querySelectorAll('a').forEach(link => {
+      if (link.textContent.includes('Profile') && !link.classList.contains('feature-coming-soon')) {
+        link.classList.add('feature-coming-soon');
+        
+        // Add tooltip
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = 'Profile feature coming soon';
+        link.appendChild(tooltip);
+        
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          showFeatureAnnouncement('User Profiles', 'Not Yet Implemented');
+        });
+      }
+    });
+  }
+  
+  // Function to show announcement modal
+  function showFeatureAnnouncement(title, message) {
+    // Create modal if it doesn't exist
+    if (!document.getElementById('feature-modal')) {
+      const modal = document.createElement('div');
+      modal.id = 'feature-modal';
+      modal.className = 'modal';
+      
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h2>${title}</h2>
+          <div class="coming-soon-tag">Coming Soon</div>
+          <p>${message}</p>
+          <div class="modal-buttons">
+            <button class="btn btn-primary close-modal">Got it</button>
+            <button class="btn notify-btn">Notify Me</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add event listeners
+      document.querySelector('.close-modal').addEventListener('click', () => {
+        document.getElementById('feature-modal').style.display = 'none';
+      });
+      
+      document.querySelector('.notify-btn').addEventListener('click', () => {
+        // Could integrate with a notification system
+        alert('Thanks! We\'ll notify you when this feature is available.');
+        document.getElementById('feature-modal').style.display = 'none';
+      });
+    } else {
+      // Update existing modal content
+      document.querySelector('#feature-modal h2').textContent = title;
+      document.querySelector('#feature-modal p').textContent = message;
+    }
+    
+    // Show the modal
+    document.getElementById('feature-modal').style.display = 'flex';
+  }
+  
+  // Call this at the end of your document ready function
+  initializeUnfinishedFeatures();
+  
+  // Close modal when clicking outside
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('feature-modal');
+    if (modal && event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // Initialize trade buttons
+  initializeTradeButtons();
 });
+
+// Trade button functionality
+function initializeTradeButtons() {
+  const tradeButtons = document.querySelectorAll('.trade-btn');
+  
+  tradeButtons.forEach(btn => {
+    btn.classList.add('feature-coming-soon', 'disabled');
+    
+    // Add tooltip
+    const tooltip = document.createElement('span');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = 'Trading feature coming soon';
+    btn.appendChild(tooltip);
+    
+    // Add click handler for feature announcement
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showFeatureAnnouncement('Seed Trading', 'Not Yet Implemented');
+    });
+  });
+}
+
+// Function to show announcement modal
+function showFeatureAnnouncement(title, message) {
+  // Create modal if it doesn't exist
+  if (!document.getElementById('feature-modal')) {
+    const modal = document.createElement('div');
+    modal.id = 'feature-modal';
+    modal.className = 'modal';
+    
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2>${title}</h2>
+        <div class="coming-soon-tag">Not Yet Implemented</div>
+        <p>${message}</p>
+        <div class="modal-buttons">
+          <button class="btn btn-primary close-modal">Ok</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listeners
+    document.querySelector('.close-modal').addEventListener('click', () => {
+      document.getElementById('feature-modal').style.display = 'none';
+    });
+    
+    document.querySelector('.notify-btn').addEventListener('click', () => {
+      alert('Thanks! We\'ll notify you when this feature is available.');
+      document.getElementById('feature-modal').style.display = 'none';
+    });
+  } else {
+    // Update existing modal content
+    document.querySelector('#feature-modal h2').textContent = title;
+    document.querySelector('#feature-modal p').textContent = message;
+  }
+  
+  // Show the modal
+  document.getElementById('feature-modal').style.display = 'flex';
+}

@@ -1,0 +1,216 @@
+\profile.html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile | SeedMart</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <h1>SeedMart</h1>
+            <p>Professional Seed Trading Platform</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/" id="market-view-tab">Market View</a></li>
+            </ul>
+        </nav>
+        <div class="header-right">
+            <div class="real-time-price">
+                <span id="seed-price">$0.00</span>/seed
+            </div>
+            <div id="auth-section" class="user-profile">
+                <!-- This will be populated by JavaScript based on auth state -->
+            </div>
+        </div>
+    </header>
+
+    <main id="app">
+        <section class="profile-container">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-cover"></div>
+                    <div class="profile-avatar">
+                        <img src="https://via.placeholder.com/120" alt="Profile Picture">
+                    </div>
+                    <div class="profile-actions">
+                        <button class="btn btn-small">Edit Profile</button>
+                    </div>
+                </div>
+
+                <div class="profile-info">
+                    <h1 class="profile-name">Jane Gardener</h1>
+                    <p class="profile-bio">Passionate about sustainable gardening and rare plant cultivation.</p>
+
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span class="stat-value">42</span>
+                            <span class="stat-label">Orders</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">18</span>
+                            <span class="stat-label">Reviews</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">3y</span>
+                            <span class="stat-label">Member</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-content">
+                    <nav class="profile-tabs">
+                        <button class="tab active" data-tab="orders">My Orders</button>
+                        <button class="tab" data-tab="favorites">Favorites</button>
+                        <button class="tab" data-tab="settings">Settings</button>
+                    </nav>
+
+                    <div class="tab-content active" id="orders">
+                        <div class="order-history">
+                            <div class="empty-state">
+                                <img src="https://via.placeholder.com/120" alt="No orders">
+                                <p>You haven't placed any orders yet</p>
+                                <a href="/" class="btn">Browse Seeds</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="favorites">
+                        <div class="empty-state">
+                            <img src="https://via.placeholder.com/120" alt="No favorites">
+                            <p>You don't have any favorite seeds yet</p>
+                            <a href="/" class="btn">Discover Seeds</a>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="settings">
+                        <form class="settings-form">
+                            <div class="form-group">
+                                <label for="profile-email">Email</label>
+                                <input type="email" id="profile-email" value="jane@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-notification">Email Notifications</label>
+                                <select id="profile-notification">
+                                    <option value="all">All updates</option>
+                                    <option value="important">Important only</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform</p>
+            <p><small>Disclaimer: This is a mock trading platform for demonstration purposes only.</small></p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all tab content sections
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show selected tab content
+                    const tabId = tab.dataset.tab;
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Check login status - copy this from other pages
+            const authSection = document.getElementById('auth-section');
+            const token = localStorage.getItem('seedmart_token');
+            const user = JSON.parse(localStorage.getItem('seedmart_user') || '{}');
+
+            if (token && user.username) {
+                // User is logged in, show profile
+                const initials = (user.first_name && user.last_name) ?
+                    (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase() :
+                    user.username.substring(0, 2).toUpperCase();
+
+                authSection.innerHTML = `
+                    <div class="user-avatar">${initials}</div>
+                    <span class="user-name">${user.username}</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <ul>
+                            <li><a href="/profile.html"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><a href="#" id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                `;
+
+                // Add event listeners for dropdown
+                authSection.addEventListener('click', () => {
+                    document.getElementById('user-dropdown').classList.toggle('active');
+                });
+
+                // Logout button functionality
+                document.getElementById('logout-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('seedmart_token');
+                    localStorage.removeItem('seedmart_user');
+                    window.location.href = '/';
+                });
+
+                // Close dropdown when clicking elsewhere
+                document.addEventListener('click', (e) => {
+                    if (!authSection.contains(e.target)) {
+                        document.getElementById('user-dropdown').classList.remove('active');
+                    }
+                });
+            } else {
+                // Not logged in, redirect to login
+                window.location.href = '/login.html';
+            }
+
+            // Seed price update function
+            function updateSeedPrice() {
+                const basePrice = 0.75;
+                const volatility = 0.25;
+                const now = new Date();
+                
+                // Use a smaller sine wave amplitude
+                const hourFactor = Math.sin(now.getHours() / 3) * volatility;
+                const minuteFactor = Math.sin(now.getMinutes() / 15) * volatility / 2;
+                
+                // Calculate a more reasonable price between $0.50-$1.50 range
+                const price = basePrice + hourFactor + minuteFactor;
+                
+                document.getElementById('seed-price').textContent = '$' + price.toFixed(2);
+                
+                setTimeout(updateSeedPrice, 30000); // Update every 30 seconds
+            }
+
+            // Initialize the seed price
+            updateSeedPrice();
+        });
+    </script>
+</body>
+
+</html>

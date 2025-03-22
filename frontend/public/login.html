@@ -20,28 +20,72 @@
                 <li><a href="/" id="market-view-tab">Market View</a></li>
             </ul>
         </nav>
+        <div id="auth-section" class="user-profile">
+            <div class="auth-buttons">
+                <a href="/login.html" class="login-link">Login</a>
+                <a href="/register.html" class="register-link">Register</a>
+            </div>
+        </div>
     </header>
 
     <main id="app">
         <section class="auth-container">
+            <div class="auth-header">
+                <h2>Welcome back</h2>
+                <p>Login to access your SeedMart account</p>
+            </div>
+            
             <div class="login-form">
-                <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
-                <div id="login-error" class="error-message" style="display: none;"></div>
+                <div id="login-error" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="error-text"></span>
+                </div>
                 
                 <form id="login-form">
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
+                        <input type="text" id="username" name="username" required autocomplete="username">
+                        <i class="fas fa-user input-icon"></i>
                     </div>
+                    
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" required autocomplete="current-password">
+                        <i class="fas fa-eye-slash input-icon toggle-password"></i>
                     </div>
-                    <div class="form-actions">
-                        <button type="submit">Login</button>
-                        <div class="auth-links">
-                            <a href="/register.html">Don't have an account? Register</a>
+                    
+                    <div class="remember-forgot">
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember" name="remember">
+                            <label for="remember" style="display: inline; margin-left: 5px;">Remember me</label>
                         </div>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </div>
+                    
+                    <div class="auth-divider">
+                        <span>Or continue with</span>
+                    </div>
+                    
+                    <div class="social-auth">
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-google"></i>
+                        </button>
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-apple"></i>
+                        </button>
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-facebook-f"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="auth-links">
+                        <a href="/register.html">Don't have an account? <strong>Register now</strong></a>
                     </div>
                 </form>
             </div>
@@ -60,6 +104,22 @@
             const API_URL = 'http://localhost:5000/api';
             const loginForm = document.getElementById('login-form');
             const loginError = document.getElementById('login-error');
+            const errorText = document.getElementById('error-text');
+            const togglePasswordBtn = document.querySelector('.toggle-password');
+            const passwordInput = document.getElementById('password');
+            
+            // Toggle password visibility
+            togglePasswordBtn.addEventListener('click', () => {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    togglePasswordBtn.classList.remove('fa-eye-slash');
+                    togglePasswordBtn.classList.add('fa-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    togglePasswordBtn.classList.remove('fa-eye');
+                    togglePasswordBtn.classList.add('fa-eye-slash');
+                }
+            });
             
             // Check if user is already logged in
             const token = localStorage.getItem('seedmart_token');
@@ -68,9 +128,26 @@
                 window.location.href = '/';
             }
             
+            // Add input focus effects
+            const inputs = document.querySelectorAll('.form-group input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    input.parentElement.querySelector('.input-icon').style.color = 'var(--accent-color)';
+                });
+                input.addEventListener('blur', () => {
+                    input.parentElement.querySelector('.input-icon').style.color = 'var(--text-secondary)';
+                });
+            });
+            
             // Handle login form submission
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                
+                // Add loading state
+                const submitBtn = loginForm.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Logging in...';
+                submitBtn.disabled = true;
+                loginError.style.display = 'none';
                 
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
@@ -92,17 +169,32 @@
                         localStorage.setItem('seedmart_refresh_token', data.refresh_token);
                         localStorage.setItem('seedmart_user', JSON.stringify(data.user));
                         
-                        // Redirect to the main page
-                        window.location.href = '/';
+                        // Show success indication
+                        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Success!';
+                        
+                        // Redirect to the main page after a short delay
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 800);
                     } else {
+                        // Reset button
+                        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                        submitBtn.disabled = false;
+                        
                         // Show error message
-                        loginError.textContent = data.error || 'Login failed. Please check your credentials.';
-                        loginError.style.display = 'block';
+                        errorText.textContent = data.error || 'Login failed. Please check your credentials.';
+                        loginError.style.display = 'flex';
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    loginError.textContent = 'An error occurred during login. Please try again later.';
-                    loginError.style.display = 'block';
+                    
+                    // Reset button
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    submitBtn.disabled = false;
+                    
+                    // Show error message
+                    errorText.textContent = 'An error occurred during login. Please try again later.';
+                    loginError.style.display = 'flex';
                 }
             });
         });

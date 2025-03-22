@@ -20,45 +20,95 @@
                 <li><a href="/" id="market-view-tab">Market View</a></li>
             </ul>
         </nav>
+        <div id="auth-section" class="user-profile">
+            <div class="auth-buttons">
+                <a href="/login.html" class="login-link">Login</a>
+                <a href="/register.html" class="register-link">Register</a>
+            </div>
+        </div>
     </header>
 
     <main id="app">
         <section class="auth-container">
+            <div class="auth-header">
+                <h2>Create Account</h2>
+                <p>Join SeedMart to start trading seeds professionally</p>
+            </div>
+            
             <div class="register-form">
-                <h2><i class="fas fa-user-plus"></i> Create Account</h2>
-                <div id="register-error" class="error-message" style="display: none;"></div>
-                <div id="register-success" class="success-message" style="display: none;"></div>
+                <div id="register-error" class="error-message" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="error-text"></span>
+                </div>
+                
+                <div id="register-success" class="success-message" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="success-text"></span>
+                </div>
                 
                 <form id="register-form">
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" id="username" name="username" required>
+                        <input type="text" id="username" name="username" required autocomplete="username">
+                        <i class="fas fa-user input-icon"></i>
                     </div>
+                    
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" required autocomplete="email">
+                        <i class="fas fa-envelope input-icon"></i>
                     </div>
-                    <div class="form-group">
-                        <label for="first-name">First Name</label>
-                        <input type="text" id="first-name" name="first_name">
+                    
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="first-name">First Name</label>
+                            <input type="text" id="first-name" name="first_name" autocomplete="given-name">
+                            <i class="fas fa-id-card input-icon"></i>
+                        </div>
+                        
+                        <div class="form-group half">
+                            <label for="last-name">Last Name</label>
+                            <input type="text" id="last-name" name="last_name" autocomplete="family-name">
+                            <i class="fas fa-id-card input-icon"></i>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="last-name">Last Name</label>
-                        <input type="text" id="last-name" name="last_name">
-                    </div>
+                    
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" required autocomplete="new-password">
+                        <i class="fas fa-eye-slash input-icon toggle-password"></i>
                     </div>
+                    
                     <div class="form-group">
                         <label for="confirm-password">Confirm Password</label>
-                        <input type="password" id="confirm-password" name="confirm_password" required>
+                        <input type="password" id="confirm-password" name="confirm_password" required autocomplete="new-password">
+                        <i class="fas fa-eye-slash input-icon toggle-confirm-password"></i>
                     </div>
+                    
                     <div class="form-actions">
-                        <button type="submit">Register</button>
-                        <div class="auth-links">
-                            <a href="/login.html">Already have an account? Login</a>
-                        </div>
+                        <button type="submit">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </div>
+                    
+                    <div class="auth-divider">
+                        <span>Or sign up with</span>
+                    </div>
+                    
+                    <div class="social-auth">
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-google"></i>
+                        </button>
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-apple"></i>
+                        </button>
+                        <button type="button" class="social-btn">
+                            <i class="fab fa-facebook-f"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="auth-links">
+                        <a href="/login.html">Already have an account? <strong>Log in</strong></a>
                     </div>
                 </form>
             </div>
@@ -78,6 +128,87 @@
             const registerForm = document.getElementById('register-form');
             const registerError = document.getElementById('register-error');
             const registerSuccess = document.getElementById('register-success');
+            const errorText = document.getElementById('error-text');
+            const successText = document.getElementById('success-text');
+            
+            // Password visibility toggle
+            const togglePassword = document.querySelector('.toggle-password');
+            const toggleConfirmPassword = document.querySelector('.toggle-confirm-password');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            
+            // Add password strength indicator
+            const passwordGroup = passwordInput.parentElement;
+            const strengthIndicator = document.createElement('div');
+            strengthIndicator.className = 'password-strength';
+            strengthIndicator.innerHTML = '<div class="strength-bar"></div>';
+            passwordGroup.appendChild(strengthIndicator);
+            
+            const strengthBar = strengthIndicator.querySelector('.strength-bar');
+            const strengthText = document.createElement('div');
+            strengthText.className = 'password-strength-text';
+            passwordGroup.appendChild(strengthText);
+            
+            // Password strength checker
+            passwordInput.addEventListener('input', () => {
+                const password = passwordInput.value;
+                let strength = 0;
+                let status = '';
+                
+                if (password.length >= 8) strength += 1;
+                if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
+                if (password.match(/\d/)) strength += 1;
+                if (password.match(/[^a-zA-Z\d]/)) strength += 1;
+                
+                strengthBar.className = 'strength-bar';
+                
+                switch (strength) {
+                    case 0:
+                        strengthBar.classList.add('weak');
+                        status = 'Weak';
+                        break;
+                    case 1:
+                    case 2:
+                        strengthBar.classList.add('medium');
+                        status = 'Medium';
+                        break;
+                    case 3:
+                    case 4:
+                        strengthBar.classList.add('strong');
+                        status = 'Strong';
+                        break;
+                }
+                
+                if (password.length === 0) {
+                    strengthText.textContent = '';
+                } else {
+                    strengthText.textContent = `Password strength: ${status}`;
+                }
+            });
+            
+            togglePassword.addEventListener('click', () => {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    togglePassword.classList.remove('fa-eye-slash');
+                    togglePassword.classList.add('fa-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    togglePassword.classList.remove('fa-eye');
+                    togglePassword.classList.add('fa-eye-slash');
+                }
+            });
+            
+            toggleConfirmPassword.addEventListener('click', () => {
+                if (confirmPasswordInput.type === 'password') {
+                    confirmPasswordInput.type = 'text';
+                    toggleConfirmPassword.classList.remove('fa-eye-slash');
+                    toggleConfirmPassword.classList.add('fa-eye');
+                } else {
+                    confirmPasswordInput.type = 'password';
+                    toggleConfirmPassword.classList.remove('fa-eye');
+                    toggleConfirmPassword.classList.add('fa-eye-slash');
+                }
+            });
             
             // Check if user is already logged in
             const token = localStorage.getItem('seedmart_token');
@@ -86,9 +217,29 @@
                 window.location.href = '/';
             }
             
+            // Add input focus effects
+            const inputs = document.querySelectorAll('.form-group input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    input.parentElement.querySelector('.input-icon').style.color = 'var(--accent-color)';
+                });
+                input.addEventListener('blur', () => {
+                    input.parentElement.querySelector('.input-icon').style.color = 'var(--text-secondary)';
+                });
+            });
+            
             // Handle registration form submission
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                
+                // Add loading state
+                const submitBtn = registerForm.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating account...';
+                submitBtn.disabled = true;
+                
+                // Reset messages
+                registerError.style.display = 'none';
+                registerSuccess.style.display = 'none';
                 
                 const username = document.getElementById('username').value;
                 const email = document.getElementById('email').value;
@@ -97,14 +248,25 @@
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirm-password').value;
                 
-                // Reset messages
-                registerError.style.display = 'none';
-                registerSuccess.style.display = 'none';
-                
-                // Validate form
+                // Validate password match
                 if (password !== confirmPassword) {
-                    registerError.textContent = 'Passwords do not match.';
-                    registerError.style.display = 'block';
+                    errorText.textContent = 'Passwords do not match.';
+                    registerError.style.display = 'flex';
+                    
+                    // Reset button state
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Password strength validation
+                if (password.length < 8) {
+                    errorText.textContent = 'Password must be at least 8 characters long.';
+                    registerError.style.display = 'flex';
+                    
+                    // Reset button state
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    submitBtn.disabled = false;
                     return;
                 }
                 
@@ -127,23 +289,36 @@
                     
                     if (response.ok) {
                         // Show success message
-                        registerSuccess.textContent = 'Registration successful! Redirecting to login...';
-                        registerSuccess.style.display = 'block';
+                        successText.textContent = 'Registration successful! Redirecting to login...';
+                        registerSuccess.style.display = 'flex';
                         registerForm.reset();
+                        
+                        // Show completed state
+                        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Account Created!';
                         
                         // Redirect to login page after 2 seconds
                         setTimeout(() => {
                             window.location.href = '/login.html';
                         }, 2000);
                     } else {
+                        // Reset button state
+                        submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                        submitBtn.disabled = false;
+                        
                         // Show error message
-                        registerError.textContent = data.error || 'Registration failed. Please try again.';
-                        registerError.style.display = 'block';
+                        errorText.textContent = data.error || 'Registration failed. Please try again.';
+                        registerError.style.display = 'flex';
                     }
                 } catch (error) {
                     console.error('Registration error:', error);
-                    registerError.textContent = 'An error occurred during registration. Please try again later.';
-                    registerError.style.display = 'block';
+                    
+                    // Reset button state
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                    submitBtn.disabled = false;
+                    
+                    // Show error message
+                    errorText.textContent = 'An error occurred during registration. Please try again later.';
+                    registerError.style.display = 'flex';
                 }
             });
         });

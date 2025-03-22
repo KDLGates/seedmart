@@ -23,12 +23,15 @@
                 <li><a style="visibility: hidden" href="/manage.html">Seed Management</a></li>
             </ul>
         </nav>
-        
-        <!-- User Profile Section -->
+
         <div id="auth-section" class="user-profile">
             <!-- This will be populated by JavaScript based on auth state -->
         </div>
     </header>
+
+    <div class="toast-container" id="toast-container">
+        <!-- Toast notifications will be added here dynamically -->
+    </div>
 
     <main id="app">
         <section class="container">
@@ -165,18 +168,18 @@
         document.addEventListener('DOMContentLoaded', () => {
             const API_URL = 'http://localhost:5000/api';
             const authSection = document.getElementById('auth-section');
-            
+
             // Function to check if user is logged in
             function checkAuth() {
                 const token = localStorage.getItem('seedmart_token');
                 const user = JSON.parse(localStorage.getItem('seedmart_user') || '{}');
-                
+
                 if (token && user.username) {
                     // User is logged in, show profile
-                    const initials = (user.first_name && user.last_name) ? 
-                                    (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase() : 
-                                    user.username.substring(0, 2).toUpperCase();
-                    
+                    const initials = (user.first_name && user.last_name) ?
+                        (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase() :
+                        user.username.substring(0, 2).toUpperCase();
+
                     authSection.innerHTML = `
                         <div class="user-avatar">${initials}</div>
                         <span class="user-name">${user.username}</span>
@@ -189,18 +192,18 @@
                             </ul>
                         </div>
                     `;
-                    
+
                     // Add event listeners for dropdown
                     authSection.addEventListener('click', () => {
                         document.getElementById('user-dropdown').classList.toggle('active');
                     });
-                    
+
                     // Logout button functionality
                     document.getElementById('logout-btn').addEventListener('click', (e) => {
                         e.preventDefault();
                         logout();
                     });
-                    
+
                     // Close dropdown when clicking elsewhere
                     document.addEventListener('click', (e) => {
                         if (!authSection.contains(e.target)) {
@@ -217,7 +220,7 @@
                     `;
                 }
             }
-            
+
             // Logout function
             async function logout() {
                 try {
@@ -228,12 +231,12 @@
                             'Authorization': `Bearer ${localStorage.getItem('seedmart_token')}`
                         }
                     });
-                    
+
                     // Clear local storage
                     localStorage.removeItem('seedmart_token');
                     localStorage.removeItem('seedmart_refresh_token');
                     localStorage.removeItem('seedmart_user');
-                    
+
                     // Refresh the page
                     window.location.reload();
                 } catch (error) {
@@ -245,20 +248,20 @@
                     window.location.reload();
                 }
             }
-            
+
             // Check authentication status when page loads
             checkAuth();
-            
+
             // Add custom auth header to all API requests
             const originalFetch = window.fetch;
-            window.fetch = function(url, options = {}) {
+            window.fetch = function (url, options = {}) {
                 // Only add auth header for API requests to our backend
                 if (url.includes(API_URL)) {
                     const token = localStorage.getItem('seedmart_token');
                     if (token) {
                         // Ensure options.headers exists
                         options.headers = options.headers || {};
-                        
+
                         // Only add authorization if not already present
                         if (!options.headers.Authorization) {
                             options.headers.Authorization = `Bearer ${token}`;
