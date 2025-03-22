@@ -87,7 +87,6 @@ nav ul li a {
 
 nav ul li a:hover, nav ul li a.active {
   color: var(--text-primary);
-  border-bottom: 2px solid var(--accent-color);
 }
 
 .container {
@@ -562,6 +561,15 @@ footer {
 #server-time {
   color: var(--text-secondary);
   font-size: 0.85rem;
+}
+
+nav ul {
+  padding-right: 50px;
+}
+
+#market-view-tab {
+  display: inline-block;
+  border-bottom: 2px solid var(--accent-color);
 }
 
 /* Better hover states for interactive elements */
