@@ -17,13 +17,13 @@
         </div>
         <nav>
             <ul>
-                <li><a href="/" id="market-view-tab">Market View</a></li>
+                <li><a href="/" id="market-view-tab" title="Go to market view">Market View</a></li>
             </ul>
         </nav>
         <div id="auth-section" class="user-profile">
             <div class="auth-buttons">
-                <a href="/login.html" class="login-link">Login</a>
-                <a href="/register.html" class="register-link">Register</a>
+                <a href="/login.html" class="login-link" title="Log in to your account">Login</a>
+                <a href="/register.html" class="register-link" title="Create a new account">Register</a>
             </div>
         </div>
     </header>
@@ -36,7 +36,7 @@
             </div>
             
             <div class="login-form">
-                <div id="login-error" class="error-message" style="display: none;">
+                <div id="login-error" class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
                     <span id="error-text"></span>
                 </div>
@@ -57,13 +57,13 @@
                     <div class="remember-forgot">
                         <div class="remember-me">
                             <input type="checkbox" id="remember" name="remember">
-                            <label for="remember" style="display: inline; margin-left: 5px;">Remember me</label>
+                            <label for="remember">Remember me</label>
                         </div>
-                        <a href="#" class="forgot-password">Forgot password?</a>
+                        <a href="#" class="forgot-password" title="Reset your password">Forgot password?</a>
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit">
+                        <button type="submit" title="Log in to your account">
                             <i class="fas fa-sign-in-alt"></i> Login
                         </button>
                     </div>
@@ -73,19 +73,19 @@
                     </div>
                     
                     <div class="social-auth">
-                        <button type="button" class="social-btn">
+                        <button type="button" class="social-btn" title="Sign in with Google">
                             <i class="fab fa-google"></i>
                         </button>
-                        <button type="button" class="social-btn">
+                        <button type="button" class="social-btn" title="Sign in with Apple">
                             <i class="fab fa-apple"></i>
                         </button>
-                        <button type="button" class="social-btn">
+                        <button type="button" class="social-btn" title="Sign in with Facebook">
                             <i class="fab fa-facebook-f"></i>
                         </button>
                     </div>
                     
                     <div class="auth-links">
-                        <a href="/register.html">Don't have an account? <strong>Register now</strong></a>
+                        <a href="/register.html" title="Register for a new account">Don't have an account? <strong>Register now</strong></a>
                     </div>
                 </form>
             </div>
@@ -107,6 +107,9 @@
             const errorText = document.getElementById('error-text');
             const togglePasswordBtn = document.querySelector('.toggle-password');
             const passwordInput = document.getElementById('password');
+            
+            // Hide error message initially
+            loginError.style.display = 'none';
             
             // Toggle password visibility
             togglePasswordBtn.addEventListener('click', () => {
@@ -199,6 +202,7 @@
             });
         });
     </script>
+    <script src="market-data.js"></script>
 </body>
 
 </html>

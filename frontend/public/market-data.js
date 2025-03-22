@@ -1063,7 +1063,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>${message}</p>
           <div class="modal-buttons">
             <button class="btn btn-primary close-modal">Got it</button>
-            <button class="btn notify-btn">Notify Me</button>
           </div>
         </div>
       `;
@@ -1075,11 +1074,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('feature-modal').style.display = 'none';
       });
       
-      document.querySelector('.notify-btn').addEventListener('click', () => {
-        // Could integrate with a notification system
-        alert('Thanks! We\'ll notify you when this feature is available.');
-        document.getElementById('feature-modal').style.display = 'none';
-      });
     } else {
       // Update existing modal content
       document.querySelector('#feature-modal h2').textContent = title;
@@ -1127,7 +1121,7 @@ function initializeTradeButtons() {
   });
 }
 
-// Function to show announcement modal
+// Function to show feature announcement modal
 function showFeatureAnnouncement(title, message) {
   // Create modal if it doesn't exist
   if (!document.getElementById('feature-modal')) {
@@ -1138,10 +1132,10 @@ function showFeatureAnnouncement(title, message) {
     modal.innerHTML = `
       <div class="modal-content">
         <h2>${title}</h2>
-        <div class="coming-soon-tag">Not Yet Implemented</div>
+        <div class="coming-soon-tag">Coming Soon</div>
         <p>${message}</p>
         <div class="modal-buttons">
-          <button class="btn btn-primary close-modal">Ok</button>
+          <button class="btn btn-primary close-modal" title="Close modal">Got it</button>
         </div>
       </div>
     `;
@@ -1150,11 +1144,6 @@ function showFeatureAnnouncement(title, message) {
     
     // Add event listeners
     document.querySelector('.close-modal').addEventListener('click', () => {
-      document.getElementById('feature-modal').style.display = 'none';
-    });
-    
-    document.querySelector('.notify-btn').addEventListener('click', () => {
-      alert('Thanks! We\'ll notify you when this feature is available.');
       document.getElementById('feature-modal').style.display = 'none';
     });
   } else {
@@ -1166,3 +1155,93 @@ function showFeatureAnnouncement(title, message) {
   // Show the modal
   document.getElementById('feature-modal').style.display = 'flex';
 }
+
+// Handle unfinished features with event delegation
+document.addEventListener('DOMContentLoaded', function() {
+  // Use event delegation for trade buttons
+  document.addEventListener('click', function(event) {
+    let target = event.target;
+    
+    // Check if the clicked element or its parent is a trade button
+    while (target && !(target.matches('.trade-btn') || target.matches('.forgot-password') || 
+           target.matches('a[href*="profile"]') || target.matches('.social-btn'))) {
+      target = target.parentElement;
+      if (!target || target === document.body) break;
+    }
+    
+    if (target) {
+      if (target.matches('.trade-btn')) {
+        event.preventDefault();
+        event.stopPropagation();
+        showFeatureAnnouncement('Seed Trading', 'Our trading platform is under development! We\'re working hard to implement this feature.');
+      } else if (target.matches('.forgot-password')) {
+        event.preventDefault();
+        showFeatureAnnouncement('Password Reset', 'Our password reset functionality is coming soon. In the meantime, please contact support for assistance.');
+      } else if (target.matches('a[href*="profile"]') && !target.href.includes('profile.html')) {
+        event.preventDefault();
+        showFeatureAnnouncement('User Profiles', 'User profile functionality is coming soon! We\'re working hard to implement this feature.');
+      } else if (target.matches('.social-btn')) {
+        event.preventDefault();
+        showFeatureAnnouncement('Social Login', 'Social login integration is coming soon! We\'re working with providers to enable this feature.');
+      }
+    }
+  });
+  
+  // Add styling to unimplemented features
+  function styleUnimplementedFeatures() {
+    // Style trade buttons
+    document.querySelectorAll('.trade-btn').forEach(btn => {
+      btn.classList.add('feature-coming-soon', 'disabled');
+      
+      // Only add tooltip if it doesn't already have one
+      if (!btn.querySelector('.tooltip')) {
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = 'Trading feature coming soon';
+        btn.appendChild(tooltip);
+      }
+    });
+    
+    // Style forgot password links
+    document.querySelectorAll('.forgot-password').forEach(link => {
+      link.classList.add('feature-coming-soon');
+      
+      if (!link.querySelector('.tooltip')) {
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = 'Reset feature coming soon';
+        link.appendChild(tooltip);
+      }
+    });
+    
+    // Style social login buttons
+    document.querySelectorAll('.social-btn').forEach(btn => {
+      btn.classList.add('feature-coming-soon');
+      
+      if (!btn.querySelector('.tooltip')) {
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = 'Social login coming soon';
+        btn.appendChild(tooltip);
+      }
+    });
+  }
+  
+  // Initial styling
+  styleUnimplementedFeatures();
+  
+  // Style after any DOM updates
+  const observer = new MutationObserver(function(mutations) {
+    styleUnimplementedFeatures();
+  });
+  
+  observer.observe(document.body, { childList: true, subtree: true });
+  
+  // Close modal when clicking outside
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('feature-modal');
+    if (modal && event.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+});

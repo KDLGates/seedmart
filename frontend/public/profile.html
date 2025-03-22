@@ -1,4 +1,4 @@
-\profile.html
+projects\seedmart\frontend\public\profile.html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,16 +18,12 @@
         </div>
         <nav>
             <ul>
-                <li><a href="/" id="market-view-tab">Market View</a></li>
+                <li><a href="/" id="market-view-tab" title="Go to market view">Market View</a></li>
             </ul>
         </nav>
-        <div class="header-right">
-            <div class="real-time-price">
-                <span id="seed-price">$0.00</span>/seed
-            </div>
-            <div id="auth-section" class="user-profile">
-                <!-- This will be populated by JavaScript based on auth state -->
-            </div>
+
+        <div id="auth-section" class="user-profile">
+            <!-- This will be populated by JavaScript based on auth state -->
         </div>
     </header>
 
@@ -40,7 +36,7 @@
                         <img src="https://via.placeholder.com/120" alt="Profile Picture">
                     </div>
                     <div class="profile-actions">
-                        <button class="btn btn-small">Edit Profile</button>
+                        <button class="btn btn-small" title="Edit your profile">Edit Profile</button>
                     </div>
                 </div>
 
@@ -66,9 +62,9 @@
 
                 <div class="profile-content">
                     <nav class="profile-tabs">
-                        <button class="tab active" data-tab="orders">My Orders</button>
-                        <button class="tab" data-tab="favorites">Favorites</button>
-                        <button class="tab" data-tab="settings">Settings</button>
+                        <button class="tab active" data-tab="orders" title="View your orders">My Orders</button>
+                        <button class="tab" data-tab="favorites" title="View your favorite seeds">Favorites</button>
+                        <button class="tab" data-tab="settings" title="Manage account settings">Settings</button>
                     </nav>
 
                     <div class="tab-content active" id="orders">
@@ -76,7 +72,7 @@
                             <div class="empty-state">
                                 <img src="https://via.placeholder.com/120" alt="No orders">
                                 <p>You haven't placed any orders yet</p>
-                                <a href="/" class="btn">Browse Seeds</a>
+                                <a href="/" class="btn" title="Browse available seeds">Browse Seeds</a>
                             </div>
                         </div>
                     </div>
@@ -85,7 +81,7 @@
                         <div class="empty-state">
                             <img src="https://via.placeholder.com/120" alt="No favorites">
                             <p>You don't have any favorite seeds yet</p>
-                            <a href="/" class="btn">Discover Seeds</a>
+                            <a href="/" class="btn" title="Discover new seeds">Discover Seeds</a>
                         </div>
                     </div>
 
@@ -97,13 +93,13 @@
                             </div>
                             <div class="form-group">
                                 <label for="profile-notification">Email Notifications</label>
-                                <select id="profile-notification">
+                                <select id="profile-notification" title="Notification preferences">
                                     <option value="all">All updates</option>
                                     <option value="important">Important only</option>
                                     <option value="none">None</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn">Save Changes</button>
+                            <button type="submit" class="btn" title="Save account settings">Save Changes</button>
                         </form>
                     </div>
                 </div>
@@ -158,9 +154,9 @@
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                     <div class="user-dropdown" id="user-dropdown">
                         <ul>
-                            <li><a href="/profile.html"><i class="fas fa-user"></i> Profile</a></li>
-                            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
-                            <li><a href="#" id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            <li><a href="/profile.html" title="View your profile"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a href="#" title="Account settings"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><a href="#" id="logout-btn" class="logout-btn" title="Log out"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                         </ul>
                     </div>
                 `;
@@ -188,29 +184,9 @@
                 // Not logged in, redirect to login
                 window.location.href = '/login.html';
             }
-
-            // Seed price update function
-            function updateSeedPrice() {
-                const basePrice = 0.75;
-                const volatility = 0.25;
-                const now = new Date();
-                
-                // Use a smaller sine wave amplitude
-                const hourFactor = Math.sin(now.getHours() / 3) * volatility;
-                const minuteFactor = Math.sin(now.getMinutes() / 15) * volatility / 2;
-                
-                // Calculate a more reasonable price between $0.50-$1.50 range
-                const price = basePrice + hourFactor + minuteFactor;
-                
-                document.getElementById('seed-price').textContent = '$' + price.toFixed(2);
-                
-                setTimeout(updateSeedPrice, 30000); // Update every 30 seconds
-            }
-
-            // Initialize the seed price
-            updateSeedPrice();
         });
     </script>
+    <script src="market-data.js"></script>
 </body>
 
 </html>
