@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // API configuration
   const API_URL = 'http://localhost:5000/api';
-  let useMockData = true; // Toggle between mock data and API data
+  let useMockData = false; // Set to false to use API data by default
   
   // Seed types with their species for our market (used for mock data)
   const seedTypes = [
