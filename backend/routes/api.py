@@ -41,7 +41,7 @@ def update_seed(id):
     db.session.commit()
     return jsonify(seed.to_dict())
 
-@api.route('/seeds/<int:id>', methods['DELETE'])
+@api.route('/seeds/<int:id>', methods=['DELETE'])
 def delete_seed(id):
     seed = Seed.query.get_or_404(id)
     db.session.delete(seed)

@@ -1,37 +1,37 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-from database import Base
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 
 db = SQLAlchemy()
 
-class Product(Base):
+class Product(db.Model):
     __tablename__ = 'products'
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String)
-    price = Column(Integer)
-    category_id = Column(Integer, ForeignKey('categories.id'))
+    id = db.Column(db.Integer, primary_key=True, index=True)
+    name = db.Column(db.String, index=True)
+    description = db.Column(db.String)
+    price = db.Column(db.Integer)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
 
-    category = relationship("Category", back_populates="products")
+    category = db.relationship("Category", back_populates="products")
 
-class Category(Base):
+class Category(db.Model):
     __tablename__ = 'categories'
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
+    id = db.Column(db.Integer, primary_key=True, index=True)
+    name = db.Column(db.String, index=True)
 
-    products = relationship("Product", back_populates="category")
+    products = db.relationship("Product", back_populates="category")
 
 class Seed(db.Model):
+    __tablename__ = "seeds"
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     species = db.Column(db.String(100))
     quantity = db.Column(db.Integer, default=0)
     price = db.Column(db.Float)
     description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=func.now())
     
     def to_dict(self):
         return {
