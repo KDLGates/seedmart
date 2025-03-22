@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeedMart - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <h1>SeedMart</h1>
+            <p>Professional Seed Trading Platform</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/" id="market-view-tab">Market View</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="app">
+        <section class="auth-container">
+            <div class="login-form">
+                <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">Login</button>
+                        <div class="auth-links">
+                            <a href="/register.html">Don't have an account? Register</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform</p>
+            <p><small>Disclaimer: This is a mock trading platform for demonstration purposes only.</small></p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = 'http://localhost:5000/api';
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            
+            // Check if user is already logged in
+            const token = localStorage.getItem('seedmart_token');
+            if (token) {
+                // Redirect to the main page
+                window.location.href = '/';
+            }
+            
+            // Handle login form submission
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                try {
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Save tokens to local storage
+                        localStorage.setItem('seedmart_token', data.access_token);
+                        localStorage.setItem('seedmart_refresh_token', data.refresh_token);
+                        localStorage.setItem('seedmart_user', JSON.stringify(data.user));
+                        
+                        // Redirect to the main page
+                        window.location.href = '/';
+                    } else {
+                        // Show error message
+                        loginError.textContent = data.error || 'Login failed. Please check your credentials.';
+                        loginError.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    loginError.textContent = 'An error occurred during login. Please try again later.';
+                    loginError.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

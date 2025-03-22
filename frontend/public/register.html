@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeedMart - Register</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <h1>SeedMart</h1>
+            <p>Professional Seed Trading Platform</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/" id="market-view-tab">Market View</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="app">
+        <section class="auth-container">
+            <div class="register-form">
+                <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+                <div id="register-error" class="error-message" style="display: none;"></div>
+                <div id="register-success" class="success-message" style="display: none;"></div>
+                
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="first-name">First Name</label>
+                        <input type="text" id="first-name" name="first_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="last-name">Last Name</label>
+                        <input type="text" id="last-name" name="last_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" name="confirm_password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">Register</button>
+                        <div class="auth-links">
+                            <a href="/login.html">Already have an account? Login</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform</p>
+            <p><small>Disclaimer: This is a mock trading platform for demonstration purposes only.</small></p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = 'http://localhost:5000/api';
+            const registerForm = document.getElementById('register-form');
+            const registerError = document.getElementById('register-error');
+            const registerSuccess = document.getElementById('register-success');
+            
+            // Check if user is already logged in
+            const token = localStorage.getItem('seedmart_token');
+            if (token) {
+                // Redirect to the main page
+                window.location.href = '/';
+            }
+            
+            // Handle registration form submission
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const email = document.getElementById('email').value;
+                const firstName = document.getElementById('first-name').value;
+                const lastName = document.getElementById('last-name').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                // Reset messages
+                registerError.style.display = 'none';
+                registerSuccess.style.display = 'none';
+                
+                // Validate form
+                if (password !== confirmPassword) {
+                    registerError.textContent = 'Passwords do not match.';
+                    registerError.style.display = 'block';
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${API_URL}/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username,
+                            email,
+                            first_name: firstName,
+                            last_name: lastName,
+                            password
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Show success message
+                        registerSuccess.textContent = 'Registration successful! Redirecting to login...';
+                        registerSuccess.style.display = 'block';
+                        registerForm.reset();
+                        
+                        // Redirect to login page after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = '/login.html';
+                        }, 2000);
+                    } else {
+                        // Show error message
+                        registerError.textContent = data.error || 'Registration failed. Please try again.';
+                        registerError.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    registerError.textContent = 'An error occurred during registration. Please try again later.';
+                    registerError.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

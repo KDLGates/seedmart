@@ -12,5 +12,6 @@ RUN pip install gunicorn
 
 EXPOSE 5000
 
-# Use gunicorn as the WSGI server for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Use gunicorn as the WSGI server for production with multiple workers
+# The formula (2 * CPU cores) + 1 is recommended for worker count
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers=4", "--threads=2", "--timeout=60", "app:app"]

@@ -23,6 +23,11 @@
                 <li><a style="visibility: hidden" href="/manage.html">Seed Management</a></li>
             </ul>
         </nav>
+        
+        <!-- User Profile Section -->
+        <div id="auth-section" class="user-profile">
+            <!-- This will be populated by JavaScript based on auth state -->
+        </div>
     </header>
 
     <main id="app">
@@ -155,6 +160,115 @@
         </div>
     </footer>
 
+    <!-- Auth scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = 'http://localhost:5000/api';
+            const authSection = document.getElementById('auth-section');
+            
+            // Function to check if user is logged in
+            function checkAuth() {
+                const token = localStorage.getItem('seedmart_token');
+                const user = JSON.parse(localStorage.getItem('seedmart_user') || '{}');
+                
+                if (token && user.username) {
+                    // User is logged in, show profile
+                    const initials = (user.first_name && user.last_name) ? 
+                                    (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase() : 
+                                    user.username.substring(0, 2).toUpperCase();
+                    
+                    authSection.innerHTML = `
+                        <div class="user-avatar">${initials}</div>
+                        <span class="user-name">${user.username}</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <ul>
+                                <li><a href="#"><i class="fas fa-user"></i> Profile</a></li>
+                                <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                                <li><a href="#" id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    `;
+                    
+                    // Add event listeners for dropdown
+                    authSection.addEventListener('click', () => {
+                        document.getElementById('user-dropdown').classList.toggle('active');
+                    });
+                    
+                    // Logout button functionality
+                    document.getElementById('logout-btn').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        logout();
+                    });
+                    
+                    // Close dropdown when clicking elsewhere
+                    document.addEventListener('click', (e) => {
+                        if (!authSection.contains(e.target)) {
+                            document.getElementById('user-dropdown').classList.remove('active');
+                        }
+                    });
+                } else {
+                    // User is not logged in, show login/register links
+                    authSection.innerHTML = `
+                        <div class="auth-buttons">
+                            <a href="/login.html" class="login-link">Login</a>
+                            <a href="/register.html" class="register-link">Register</a>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Logout function
+            async function logout() {
+                try {
+                    // Call the logout endpoint (which doesn't do much on the backend currently)
+                    await fetch(`${API_URL}/auth/logout`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('seedmart_token')}`
+                        }
+                    });
+                    
+                    // Clear local storage
+                    localStorage.removeItem('seedmart_token');
+                    localStorage.removeItem('seedmart_refresh_token');
+                    localStorage.removeItem('seedmart_user');
+                    
+                    // Refresh the page
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    // Even if the API call fails, we can still clear local storage
+                    localStorage.removeItem('seedmart_token');
+                    localStorage.removeItem('seedmart_refresh_token');
+                    localStorage.removeItem('seedmart_user');
+                    window.location.reload();
+                }
+            }
+            
+            // Check authentication status when page loads
+            checkAuth();
+            
+            // Add custom auth header to all API requests
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                // Only add auth header for API requests to our backend
+                if (url.includes(API_URL)) {
+                    const token = localStorage.getItem('seedmart_token');
+                    if (token) {
+                        // Ensure options.headers exists
+                        options.headers = options.headers || {};
+                        
+                        // Only add authorization if not already present
+                        if (!options.headers.Authorization) {
+                            options.headers.Authorization = `Bearer ${token}`;
+                        }
+                    }
+                }
+                return originalFetch(url, options);
+            };
+        });
+    </script>
     <script src="market-data.js"></script>
 </body>
 

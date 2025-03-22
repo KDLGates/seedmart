@@ -709,3 +709,160 @@ select:focus {
 .price-indicator {
   margin-left: 1.5rem;
 }
+
+/* Authentication Styles */
+.auth-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.login-form, .register-form {
+  width: 100%;
+}
+
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.auth-container .form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-actions button {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auth-links {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.auth-links a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.auth-links a:hover {
+  color: #1e56ff;
+  text-decoration: underline;
+}
+
+.error-message {
+  background-color: rgba(239, 83, 80, 0.1);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.success-message {
+  background-color: rgba(38, 166, 154, 0.1);
+  border: 1px solid var(--success-color);
+  color: var(--success-color);
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* User Profile Dropdown */
+.user-profile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-left: auto;
+  padding-right: 1rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.dropdown-icon {
+  margin-left: 5px;
+  font-size: 0.8rem;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 200px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  display: none;
+}
+
+.user-dropdown.active {
+  display: block;
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-dropdown li {
+  padding: 0;
+  margin: 0;
+}
+
+.user-dropdown li a {
+  display: block;
+  padding: 10px 15px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background 0.2s;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.user-dropdown li:last-child a {
+  border-bottom: none;
+}
+
+.user-dropdown li a:hover {
+  background: var(--hover-bg);
+}
+
+.logout-btn {
+  color: var(--danger-color) !important;
+}
