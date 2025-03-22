@@ -1,13 +1,59 @@
+:\projects\seedmart\frontend\public\index.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SeedMart</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div id="root"></div>
-    <script src="../src/index.js"></script>
+    <header>
+        <h1>SeedMart</h1>
+        <p>Your Source for Quality Seeds</p>
+    </header>
+
+    <main id="app">
+        <section class="container">
+            <h2>Available Seeds</h2>
+            <div id="seed-list">Loading seeds...</div>
+
+            <div class="form-section">
+                <h3>Add New Seed</h3>
+                <form id="seed-form">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="species">Species:</label>
+                        <input type="text" id="species" name="species">
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" name="quantity" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price:</label>
+                        <input type="number" id="price" name="price" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description"></textarea>
+                    </div>
+                    <button type="submit">Add Seed</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 SeedMart</p>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
+
 </html>

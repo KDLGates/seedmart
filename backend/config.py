@@ -1,7 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
-    DEBUG = os.getenv('DEBUG', 'False') == 'True'
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///seedmart.db')
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-for-testing'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///seedmart.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.getenv('SECRET_KEY', 'your_secret_key')

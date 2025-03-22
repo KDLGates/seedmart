@@ -1,1 +1,1 @@
-# This file is intentionally left blank.
+from models.models import db, Seed
