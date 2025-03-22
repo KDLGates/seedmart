@@ -6,13 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SeedMart - Seed Trading Platform</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
     <header>
-        <h1>SeedMart</h1>
-        <p>Seed Trading Platform</p>
+        <div class="header-left">
+            <h1>SeedMart</h1>
+            <p>Professional Seed Trading Platform</p>
+        </div>
         <nav>
             <ul>
                 <li><a href="/" class="active">Market View</a></li>
@@ -25,38 +28,102 @@
         <section class="container">
             <div class="trading-panel">
                 <div class="chart-container">
-                    <h2>Seed Market Trends</h2>
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <h2>Seed Market Trends</h2>
+                            <span id="current-seed" class="current-seed-indicator">Selected Seeds</span>
+                        </div>
+                        <div class="real-time-price" id="real-time-price">
+                            <span id="live-price">---</span>
+                            <span id="live-change" class="price-up">---</span>
+                        </div>
+                    </div>
                     <div class="chart-controls">
-                        <select id="timeframe">
-                            <option value="1d">1 Day</option>
-                            <option value="1w" selected>1 Week</option>
-                            <option value="1m">1 Month</option>
-                            <option value="3m">3 Months</option>
-                        </select>
-                        <button id="refresh-btn">Refresh Data</button>
+                        <div class="left-controls">
+                            <select id="timeframe">
+                                <option value="1d">1D</option>
+                                <option value="1w" selected>1W</option>
+                                <option value="1m">1M</option>
+                                <option value="3m">3M</option>
+                                <option value="1y">1Y</option>
+                            </select>
+                            <div class="chart-type-controls">
+                                <button class="chart-type-btn active" data-type="line">
+                                    <i class="fas fa-chart-line"></i>
+                                </button>
+                                <button class="chart-type-btn" data-type="candle">
+                                    <i class="fas fa-chart-bar"></i>
+                                </button>
+                            </div>
+                            <div class="data-source-toggle">
+                                <button id="data-source-btn" title="Toggle between mock and API data">
+                                    <i class="fas fa-database"></i>
+                                    <span class="data-source-label">Mock Data</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="right-controls">
+                            <button id="indicators-btn">
+                                <i class="fas fa-chart-pie"></i> Indicators
+                            </button>
+                            <button id="refresh-btn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="seedChart"></canvas>
                     </div>
+                    <div class="volume-bars">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
                 </div>
                 <div class="market-sidebar">
                     <div class="top-seeds">
-                        <h3>Top Performing Seeds</h3>
+                        <h3><i class="fas fa-arrow-trend-up"></i> Top Performing Seeds</h3>
                         <ul id="trending-up" class="trend-list">
                             <li>Loading...</li>
                         </ul>
                     </div>
                     <div class="bottom-seeds">
-                        <h3>Declining Seeds</h3>
+                        <h3><i class="fas fa-arrow-trend-down"></i> Declining Seeds</h3>
                         <ul id="trending-down" class="trend-list">
                             <li>Loading...</li>
                         </ul>
+                    </div>
+                    <div class="market-statistics">
+                        <h3><i class="fas fa-chart-simple"></i> Market Statistics</h3>
+                        <div class="stats-container">
+                            <div class="stat-item">
+                                <span class="stat-label">Market Cap</span>
+                                <span class="stat-value" id="market-cap">$245,367</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">24h Volume</span>
+                                <span class="stat-value" id="market-volume">$32,089</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Seeds Listed</span>
+                                <span class="stat-value" id="seed-count">10</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="market-table">
-                <h3>Seed Market Overview</h3>
+                <div class="table-header">
+                    <h3><i class="fas fa-table"></i> Seed Market Overview</h3>
+                    <div class="table-controls">
+                        <input type="text" id="search-seeds" placeholder="Search seeds...">
+                        <select id="sort-by">
+                            <option value="name">Name</option>
+                            <option value="price">Price</option>
+                            <option value="change" selected>Change</option>
+                            <option value="volume">Volume</option>
+                        </select>
+                    </div>
+                </div>
                 <table id="seed-market-table">
                     <thead>
                         <tr>
@@ -65,12 +132,13 @@
                             <th>Current Price</th>
                             <th>Change (24h)</th>
                             <th>Volume</th>
+                            <th>Chart</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="market-data">
                         <tr>
-                            <td colspan="6">Loading market data...</td>
+                            <td colspan="7">Loading market data...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -79,7 +147,10 @@
     </main>
 
     <footer>
-        <p>&copy; 2025 SeedMart - Real-time Seed Trading Platform</p>
+        <div class="footer-content">
+            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform | <span id="server-time">Server time: Loading...</span></p>
+            <p><small>Disclaimer: This is a mock trading platform for demonstration purposes only.</small></p>
+        </div>
     </footer>
 
     <script src="market-data.js"></script>
