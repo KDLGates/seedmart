@@ -659,3 +659,45 @@ table tr.active::after {
   border-radius: 4px;
   margin: 10px 0;
 }
+
+/* Contrast fixes */
+/* Improve dropdown menu text contrast */
+select,
+select option {
+  color: #ffffff;
+  background-color: #1a1d2d;
+}
+
+/* Add hover state for better user experience */
+select option:hover {
+  background-color: #2c3046;
+}
+
+/* Style the dropdown when expanded */
+select:focus {
+  border-color: #3a6df0;
+  outline: none;
+}
+
+
+/* Top Nav layout fixes */
+/* Add proper spacing in the top navigation */
+.market-view-container {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+  padding-right: 2rem;
+}
+
+/* Ensure responsive spacing between nav items */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+}
+
+/* Add specific margin to the price indicator to prevent overlap */
+.price-indicator {
+  margin-left: 1.5rem;
+}
