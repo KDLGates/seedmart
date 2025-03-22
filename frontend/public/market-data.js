@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Generate random price for a seed (for mock data only)
   function generateBasePrice() {
-    // Scaled down from 10+2 to 5+1 to get smaller price values (1-6 range instead of 2-12)
+// Scaled down from 10+2 to 5+1 to get smaller price values (1-6 range instead of 2-12)
     return (Math.random() * 5 + 1).toFixed(2);
   }
   
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const prices = [];
     const trend = Math.random() > 0.5 ? 1 : -1; // Random trend direction
-    // Reduced volatility for smaller price movements
+// Reduced volatility for smaller price movements
     const volatility = Math.random() * 0.1 + 0.02; // Scaled down from 0.2+0.05
     
     let price = parseFloat(basePrice);
