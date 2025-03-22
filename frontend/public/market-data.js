@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateServerTime, 1000);
   updateServerTime();
   
-  // Generate random price for a seed
+  // Generate random price for a seed (for mock data only)
   function generateBasePrice() {
     return (Math.random() * 10 + 2).toFixed(2);
   }
   
-  // Generate price history data with trends
+  // Generate price history data with trends (for mock data only)
   function generatePriceHistory(basePrice, days = 7) {
     // Map timeframe to number of days
     const timeframeDays = {
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Generate dates for the chart
-  function generateDates(days = 7) {
+  function generateDates(priceData = []) {
     const timeframeFormat = {
       '1d': { hour: '2-digit', minute: '2-digit' },
       '1w': { month: 'short', day: 'numeric' },
@@ -82,7 +82,15 @@ document.addEventListener('DOMContentLoaded', () => {
       '1y': { month: 'short', year: 'numeric' }
     };
     
-    // Map timeframe to number of days
+    // If we have actual price data with timestamps, use those
+    if (priceData.length > 0 && priceData[0].recorded_at) {
+      return priceData.map(item => {
+        const date = new Date(item.recorded_at);
+        return date.toLocaleDateString('en-US', timeframeFormat[timeframe] || { month: 'short', day: 'numeric' });
+      });
+    }
+    
+    // Fallback to generating dates if we don't have timestamp data
     const timeframeDays = {
       '1d': 1 * 24, // 1 day with hourly data points
       '1w': 7,
@@ -116,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return dates;
   }
   
-  // Generate random volume data
+  // Generate random volume data (for mock data only)
   function generateVolumeData(days = 7) {
     // Map timeframe to number of data points
     const timeframeDays = {
@@ -137,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return volumes;
   }
   
-  // Generate random volume
+  // Generate random volume (for mock data only)
   function generateVolume() {
     return Math.floor(Math.random() * 10000) + 500;
   }
@@ -152,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('seed-count').textContent = data.length;
   }
 
-  // Fetch seeds from the API
+  // Fetch seeds from the API using the market summary endpoint
   async function fetchSeedsFromAPI() {
     try {
       const loadingIndicator = document.createElement('div');
@@ -171,38 +179,30 @@ document.addEventListener('DOMContentLoaded', () => {
         marketDataTable.appendChild(loadingRow);
       }
       
-      // Fetch data from API
-      const response = await fetch(`${API_URL}/seeds`);
+      // Fetch market summary data from API
+      const response = await fetch(`${API_URL}/market/summary`);
       
       if (!response.ok) {
         throw new Error(`API responded with status: ${response.status}`);
       }
       
-      const seedsData = await response.json();
+      const summaryData = await response.json();
       
-      // Transform API data to match our market data format
-      return seedsData.map(seed => {
-        const basePrice = seed.price || generateBasePrice();
-        const priceHistory = generatePriceHistory(basePrice);
-        const volumeHistory = generateVolumeData();
-        const currentPrice = priceHistory[priceHistory.length - 1].toFixed(2);
-        const previousPrice = priceHistory[priceHistory.length - 2].toFixed(2);
-        const change = (currentPrice - previousPrice).toFixed(2);
-        const changePercent = ((change / previousPrice) * 100).toFixed(1);
-        
+      // Return the market summary data - it already has the format we need
+      return summaryData.map(seed => {
         return {
           id: seed.id,
           name: seed.name,
           species: seed.species || 'Unknown species',
-          basePrice,
-          priceHistory,
-          volumeHistory,
-          currentPrice,
-          previousPrice,
-          change,
-          changePercent,
-          volume: seed.quantity || generateVolume(),
-          description: seed.description
+          currentPrice: seed.currentPrice,
+          previousPrice: seed.previousPrice,
+          change: seed.change,
+          changePercent: seed.changePercent,
+          volume: seed.volume,
+          description: seed.description,
+          // Initialize with empty arrays - will be populated when seed is selected
+          priceHistory: [],
+          volumeHistory: []
         };
       });
     } catch (error) {
@@ -225,6 +225,48 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Return null to indicate error and fall back to mock data
       return null;
+    }
+  }
+
+  // Fetch price history for a specific seed
+  async function fetchPriceHistory(seedId) {
+    try {
+      // Show loading indicator in the chart
+      document.getElementById('seedChart').style.opacity = '0.5';
+      document.getElementById('volumeChart').style.opacity = '0.5';
+      
+      // Fetch price history from API with the current timeframe
+      const response = await fetch(`${API_URL}/seeds/${seedId}/prices?timeframe=${timeframe}`);
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
+      const priceData = await response.json();
+      
+      // Extract price and volume arrays
+      const prices = priceData.map(item => item.price);
+      const volumes = priceData.map(item => item.volume);
+      
+      // Return both arrays and the raw data
+      return {
+        priceHistory: prices,
+        volumeHistory: volumes,
+        rawData: priceData
+      };
+    } catch (error) {
+      console.error(`Error fetching price history for seed ${seedId}:`, error);
+      
+      // In case of error, return empty arrays
+      return {
+        priceHistory: [],
+        volumeHistory: [],
+        rawData: []
+      };
+    } finally {
+      // Restore chart opacity
+      document.getElementById('seedChart').style.opacity = '1';
+      document.getElementById('volumeChart').style.opacity = '1';
     }
   }
   
@@ -277,34 +319,60 @@ document.addEventListener('DOMContentLoaded', () => {
     return marketData;
   }
   
-  // Initialize the chart
-  function initChart(data) {
+  // Initialize the chart with a set of seeds (top 3 or selected seed)
+  async function initChart(seeds) {
     const ctx = document.getElementById('seedChart').getContext('2d');
     const volumeCtx = document.getElementById('volumeChart').getContext('2d');
     
-    // Get selected seeds for charting (top 5 by price)
-    const selectedSeeds = [...data]
-      .sort((a, b) => b.currentPrice - a.currentPrice)
-      .slice(0, 3);
-      
-    const labels = generateDates();
+    // Clone the seeds to avoid modifying the original data
+    let seedsToShow = [...seeds];
+    
+    // Limit to top 3 if not selecting a specific seed
+    if (seedsToShow.length > 3) {
+      seedsToShow = seedsToShow
+        .sort((a, b) => b.currentPrice - a.currentPrice)
+        .slice(0, 3);
+    }
+    
+    // For each seed to show, fetch its price history if needed
+    for (let seed of seedsToShow) {
+      // If price history isn't loaded yet, fetch it from API (or generate if mock)
+      if (!seed.priceHistory || seed.priceHistory.length === 0) {
+        if (!useMockData) {
+          // Fetch from API
+          const historyData = await fetchPriceHistory(seed.id);
+          seed.priceHistory = historyData.priceHistory;
+          seed.volumeHistory = historyData.volumeHistory;
+          seed.rawPriceData = historyData.rawData;
+        } else {
+          // Generate mock data
+          seed.priceHistory = generatePriceHistory(seed.currentPrice);
+          seed.volumeHistory = generateVolumeData();
+        }
+      }
+    }
+    
+    // Generate dates based on the first seed's price history
+    const labels = seedsToShow.length > 0 && seedsToShow[0].rawPriceData ? 
+      generateDates(seedsToShow[0].rawPriceData) : 
+      generateDates();
     
     // Display selected seeds in chart title
-    document.getElementById('current-seed').textContent = selectedSeeds.map(seed => seed.name).join(', ');
+    document.getElementById('current-seed').textContent = seedsToShow.map(seed => seed.name).join(', ');
     
     // Update real-time price indicator
-    if (selectedSeeds.length > 0) {
-      document.getElementById('live-price').textContent = '$' + selectedSeeds[0].currentPrice;
-      const changeText = selectedSeeds[0].change > 0 ? 
-        `+${selectedSeeds[0].change} (${selectedSeeds[0].changePercent}%)` : 
-        `${selectedSeeds[0].change} (${selectedSeeds[0].changePercent}%)`;
+    if (seedsToShow.length > 0) {
+      document.getElementById('live-price').textContent = '$' + seedsToShow[0].currentPrice;
+      const changeText = seedsToShow[0].change > 0 ? 
+        `+${seedsToShow[0].change} (${seedsToShow[0].changePercent}%)` : 
+        `${seedsToShow[0].change} (${seedsToShow[0].changePercent}%)`;
       const liveChange = document.getElementById('live-change');
       liveChange.textContent = changeText;
-      liveChange.className = selectedSeeds[0].change > 0 ? 'price-up' : 'price-down';
+      liveChange.className = seedsToShow[0].change > 0 ? 'price-up' : 'price-down';
     }
     
     // Prepare datasets for chart based on chart type
-    const datasets = selectedSeeds.map(seed => {
+    const datasets = seedsToShow.map(seed => {
       // Generate a consistent color for each seed
       const hash = seed.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
       const r = (hash * 123) % 200 + 55;
@@ -435,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'bar',
       data: {
         labels: labels,
-        datasets: selectedSeeds.map(seed => {
+        datasets: seedsToShow.map(seed => {
           // Generate a consistent color for each seed
           const hash = seed.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
           const r = (hash * 123) % 200 + 55;
@@ -483,11 +551,46 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Generate sparkline chart for table
-  function generateSparkline(priceHistory, seedName, trend) {
+  function generateSparkline(seed, trend) {
     const sparklineCanvas = document.createElement('canvas');
     sparklineCanvas.className = 'sparkline';
     
-    const hash = seedName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    // If we have price history, use it; otherwise fetch it or use empty array
+    let priceData = seed.priceHistory || [];
+    
+    // If no price data is available, use the spark cell to show loading indicator
+    if (priceData.length === 0) {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'spark-loading';
+      loadingDiv.textContent = 'Loading...';
+      
+      // Try to fetch price history in the background if API is available
+      if (!useMockData) {
+        fetchPriceHistory(seed.id).then(data => {
+          seed.priceHistory = data.priceHistory;
+          seed.volumeHistory = data.volumeHistory;
+          
+          // Once data is loaded, replace loading indicator with sparkline
+          const parentCell = loadingDiv.parentElement;
+          if (parentCell) {
+            parentCell.innerHTML = '';
+            parentCell.appendChild(generateSparkline(seed, trend));
+          }
+        }).catch(err => {
+          console.error(`Error fetching sparkline data for ${seed.name}:`, err);
+          loadingDiv.textContent = 'No data';
+        });
+      } else {
+        // For mock data, generate immediately
+        seed.priceHistory = generatePriceHistory(seed.currentPrice);
+        seed.volumeHistory = generateVolumeData();
+        return generateSparkline(seed, trend);
+      }
+      
+      return loadingDiv;
+    }
+    
+    const hash = seed.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const r = (hash * 123) % 200 + 55;
     const g = (hash * 456) % 200 + 55;
     const b = (hash * 789) % 200 + 55;
@@ -498,9 +601,9 @@ document.addEventListener('DOMContentLoaded', () => {
     new Chart(sparkCtx, {
       type: 'line',
       data: {
-        labels: Array(priceHistory.length).fill(''),
+        labels: Array(priceData.length).fill(''),
         datasets: [{
-          data: priceHistory,
+          data: priceData,
           borderColor: trend > 0 ? '#26a69a' : '#ef5350',
           borderWidth: 1.5,
           pointRadius: 0,
@@ -640,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Create sparkline chart cell
       const sparklineCell = document.createElement('td');
-      sparklineCell.appendChild(generateSparkline(seed.priceHistory, seed.name, seed.change));
+      sparklineCell.appendChild(generateSparkline(seed, seed.change));
       
       row.innerHTML = `
         <td>${seed.name}</td>
@@ -727,9 +830,11 @@ document.addEventListener('DOMContentLoaded', () => {
       seed.change = (newPrice - seed.previousPrice).toFixed(2);
       seed.changePercent = ((seed.change / seed.previousPrice) * 100).toFixed(1);
       
-      // Update price history
-      seed.priceHistory.push(parseFloat(newPrice));
-      seed.priceHistory.shift();
+      // Update price history if it exists
+      if (seed.priceHistory && seed.priceHistory.length > 0) {
+        seed.priceHistory.push(parseFloat(newPrice));
+        seed.priceHistory.shift();
+      }
       
       // If this is the selected seed or one of the displayed seeds, update the chart
       if (selectedSeed && selectedSeed.name === seed.name) {
@@ -810,6 +915,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event listeners
   document.getElementById('timeframe').addEventListener('change', (e) => {
     timeframe = e.target.value;
+    // Clear price history cache when timeframe changes
+    marketData.forEach(seed => {
+      seed.priceHistory = [];
+      seed.volumeHistory = [];
+      seed.rawPriceData = null;
+    });
     initMarketView();
   });
   

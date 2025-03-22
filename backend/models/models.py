@@ -33,6 +33,9 @@ class Seed(db.Model):
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=func.now())
     
+    # Add relationship to SeedPrice
+    prices = db.relationship("SeedPrice", back_populates="seed", cascade="all, delete-orphan")
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -42,4 +45,25 @@ class Seed(db.Model):
             'price': self.price,
             'description': self.description,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class SeedPrice(db.Model):
+    __tablename__ = "seed_prices"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    seed_id = db.Column(db.Integer, db.ForeignKey('seeds.id'), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    volume = db.Column(db.Integer, default=0)  # Trading volume for the day
+    recorded_at = db.Column(db.DateTime, default=func.now())
+    
+    # Relationship to Seed
+    seed = db.relationship("Seed", back_populates="prices")
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'seed_id': self.seed_id,
+            'price': self.price,
+            'volume': self.volume,
+            'recorded_at': self.recorded_at.isoformat() if self.recorded_at else None
         }
