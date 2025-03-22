@@ -41,7 +41,7 @@
                     </div>
                     <div class="chart-controls">
                         <div class="left-controls">
-                            <select id="timeframe">
+                            <select title="timeframe" id="timeframe">
                                 <option value="1d">1D</option>
                                 <option value="1w" selected>1W</option>
                                 <option value="1m">1M</option>
@@ -49,10 +49,10 @@
                                 <option value="1y">1Y</option>
                             </select>
                             <div class="chart-type-controls">
-                                <button class="chart-type-btn active" data-type="line">
+                                <button title="line-button" class="chart-type-btn active" data-type="line">
                                     <i class="fas fa-chart-line"></i>
                                 </button>
-                                <button class="chart-type-btn" data-type="candle">
+                                <button title="chart-button" class="chart-type-btn" data-type="candle">
                                     <i class="fas fa-chart-bar"></i>
                                 </button>
                             </div>
@@ -117,7 +117,7 @@
                     <h3><i class="fas fa-table"></i> Seed Market Overview</h3>
                     <div class="table-controls">
                         <input type="text" id="search-seeds" placeholder="Search seeds...">
-                        <select id="sort-by">
+                        <select title="sort-by" id="sort-by">
                             <option value="name">Name</option>
                             <option value="price">Price</option>
                             <option value="change" selected>Change</option>
@@ -149,7 +149,8 @@
 
     <footer>
         <div class="footer-content">
-            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform | <span id="server-time">Server time: Loading...</span></p>
+            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform | <span id="server-time">Server time:
+                    Loading...</span></p>
             <p><small>Disclaimer: This is a mock trading platform for demonstration purposes only.</small></p>
         </div>
     </footer>
