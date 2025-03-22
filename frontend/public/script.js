@@ -40,40 +40,44 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Add new seed
-  seedForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-      name: document.getElementById('name').value,
-      species: document.getElementById('species').value,
-      quantity: parseInt(document.getElementById('quantity').value) || 0,
-      price: parseFloat(document.getElementById('price').value) || 0,
-      description: document.getElementById('description').value
-    };
-    
-    try {
-      const response = await fetch(`${API_URL}/seeds`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+  if (seedForm) {
+    seedForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       
-      if (response.ok) {
-        seedForm.reset();
-        fetchSeeds();
-      } else {
+      const formData = {
+        name: document.getElementById('name').value,
+        species: document.getElementById('species').value,
+        quantity: parseInt(document.getElementById('quantity').value) || 0,
+        price: parseFloat(document.getElementById('price').value) || 0,
+        description: document.getElementById('description').value
+      };
+      
+      try {
+        const response = await fetch(`${API_URL}/seeds`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+          seedForm.reset();
+          fetchSeeds();
+        } else {
+          alert('Error creating seed');
+        }
+      } catch (error) {
+        console.error('Error creating seed:', error);
         alert('Error creating seed');
       }
-    } catch (error) {
-      console.error('Error creating seed:', error);
-      alert('Error creating seed');
-    }
-  });
+    });
+  }
   
-  // Load seeds when page loads
-  fetchSeeds();
+  // Load seeds when page loads if we're on the manage page
+  if (seedList) {
+    fetchSeeds();
+  }
   
   // Make these functions global so the onclick handlers can access them
   window.editSeed = async (id) => {

@@ -1,12 +1,19 @@
 # SeedMart
 
-A full-stack CRUD application showcasing Python backend with Node/Express frontend.
+A full-stack seed trading platform with a market visualization dashboard and seed management system.
 
 ## Project Structure
 
 - Backend: Python with Flask
 - Frontend: Node.js with Express
-- Database: [Your database choice]
+- Database: SQLite/PostgreSQL
+
+## Features
+
+- Interactive seed market dashboard with price charts
+- Trending seeds visualization
+- Seed management system
+- CRUD operations for seed inventory
 
 ## Getting Started
 
@@ -28,10 +35,18 @@ npm install
 npm run dev
 ```
 
+## Pages
+
+- `/` - Market view with seed price charts
+- `/manage.html` - Seed management interface
+
 ## API Endpoints
 
 ```text
-
 - GET /api/health - Health check endpoint
-
+- GET /api/seeds - Get all seeds
+- GET /api/seeds/:id - Get specific seed
+- POST /api/seeds - Create new seed
+- PUT /api/seeds/:id - Update seed
+- DELETE /api/seeds/:id - Delete seed
 ```

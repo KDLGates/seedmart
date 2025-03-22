@@ -1,59 +1,88 @@
-:\projects\seedmart\frontend\public\index.html -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeedMart</title>
+    <title>SeedMart - Seed Trading Platform</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
     <header>
         <h1>SeedMart</h1>
-        <p>Your Source for Quality Seeds</p>
+        <p>Seed Trading Platform</p>
+        <nav>
+            <ul>
+                <li><a href="/" class="active">Market View</a></li>
+                <li><a href="/manage.html">Seed Management</a></li>
+            </ul>
+        </nav>
     </header>
 
     <main id="app">
         <section class="container">
-            <h2>Available Seeds</h2>
-            <div id="seed-list">Loading seeds...</div>
+            <div class="trading-panel">
+                <div class="chart-container">
+                    <h2>Seed Market Trends</h2>
+                    <div class="chart-controls">
+                        <select id="timeframe">
+                            <option value="1d">1 Day</option>
+                            <option value="1w" selected>1 Week</option>
+                            <option value="1m">1 Month</option>
+                            <option value="3m">3 Months</option>
+                        </select>
+                        <button id="refresh-btn">Refresh Data</button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="seedChart"></canvas>
+                    </div>
+                </div>
+                <div class="market-sidebar">
+                    <div class="top-seeds">
+                        <h3>Top Performing Seeds</h3>
+                        <ul id="trending-up" class="trend-list">
+                            <li>Loading...</li>
+                        </ul>
+                    </div>
+                    <div class="bottom-seeds">
+                        <h3>Declining Seeds</h3>
+                        <ul id="trending-down" class="trend-list">
+                            <li>Loading...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-            <div class="form-section">
-                <h3>Add New Seed</h3>
-                <form id="seed-form">
-                    <div class="form-group">
-                        <label for="name">Name:</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="species">Species:</label>
-                        <input type="text" id="species" name="species">
-                    </div>
-                    <div class="form-group">
-                        <label for="quantity">Quantity:</label>
-                        <input type="number" id="quantity" name="quantity" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="price">Price:</label>
-                        <input type="number" id="price" name="price" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Description:</label>
-                        <textarea id="description" name="description"></textarea>
-                    </div>
-                    <button type="submit">Add Seed</button>
-                </form>
+            <div class="market-table">
+                <h3>Seed Market Overview</h3>
+                <table id="seed-market-table">
+                    <thead>
+                        <tr>
+                            <th>Seed Name</th>
+                            <th>Species</th>
+                            <th>Current Price</th>
+                            <th>Change (24h)</th>
+                            <th>Volume</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="market-data">
+                        <tr>
+                            <td colspan="6">Loading market data...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2025 SeedMart</p>
+        <p>&copy; 2025 SeedMart - Real-time Seed Trading Platform</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="market-data.js"></script>
 </body>
 
 </html>
