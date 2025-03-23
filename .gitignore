@@ -1,3 +1,7 @@
+# Deployment details
+deploy-to-ecr.sh
+seedmart-task-definition.json
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,5 +1,22 @@
 import axios from 'axios';
 
+const express = require('express');
+const path = require('path');
+const app = express();
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'frontend/public')));
+
+// Handle SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/public/index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export const getItems = async () => {
