@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 
 // API proxy middleware
 app.use('/api', createProxyMiddleware({
-  target: process.env.REACT_APP_API_URL || 'http://backend:5000',
+  target: process.env.API_URL || 'http://localhost:5000/api',
   changeOrigin: true,
   pathRewrite: {
     '^/api': '/api'
@@ -53,5 +53,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Frontend server running on port ${PORT}`);
-  console.log(`API proxy target: ${process.env.REACT_APP_API_URL || 'http://backend:5000'}`);
+  console.log(`API proxy target: ${process.env.API_URL || 'http://backend:5000'}`);
 });

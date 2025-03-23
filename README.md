@@ -71,16 +71,15 @@ Follow the setup instructions in the "Getting Started" section.
    gunicorn app:app
    ```
 
-#### Frontend (Express server serving React)
+#### Frontend
 
 1. Set up a Node.js environment
 2. Configure environment variables:
    ```
-   REACT_APP_API_URL=your_production_backend_url
+   API_URL=your_production_backend_url
    ```
 3. Install dependencies: `npm install`
-4. Build for production: `npm run build` (if using React build process)
-5. Start the server: `npm start`
+4. Start the server: `npm start`
 
 ### Docker Deployment
 

@@ -33,9 +33,14 @@ app.register_blueprint(auth, url_prefix='/api/auth')
 # Initialize scheduler
 scheduler = BackgroundScheduler()
 
+# Function to wrap update_seed_prices with app context
+def update_prices_with_context():
+    with app.app_context():
+        MarketService.update_seed_prices()
+
 # Add market update job - runs every 30 seconds
 scheduler.add_job(
-    func=MarketService.update_seed_prices,
+    func=update_prices_with_context,  # Use the wrapper function instead
     trigger=IntervalTrigger(seconds=30),
     id='update_market_prices',
     name='Update seed market prices',
@@ -58,4 +63,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
         seed_database()  # Seed the database if it's empty
-    app.run(debug=True, threaded=True)  # Enable threading for multi-user support
+    app.run(host='0.0.0.0', debug=True, threaded=True)  # Enable threading for multi-user support

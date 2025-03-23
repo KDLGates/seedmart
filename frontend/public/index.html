@@ -169,6 +169,7 @@
             const API_URL = 'http://localhost:5000/api';
             const authSection = document.getElementById('auth-section');
 
+            
             // Function to check if user is logged in
             function checkAuth() {
                 const token = localStorage.getItem('seedmart_token');
@@ -270,7 +271,51 @@
                 }
                 return originalFetch(url, options);
             };
+
+            document.getElementById('data-source-btn').addEventListener('click', () => {
+                const label = document.querySelector('.data-source-label');
+                const isMockData = label.textContent === 'Mock Data';
+                
+                // Toggle the data source
+                if (isMockData) {
+                    label.textContent = 'Live API';
+                    localStorage.setItem('seedmart_data_source', 'api');
+                } else {
+                    label.textContent = 'Mock Data';
+                    localStorage.setItem('seedmart_data_source', 'mock');
+                }
+                
+                // Reload market data
+                initMarketView();
+            });
         });
+
+        // Initialize data source settings when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // If no preference is set, default to API data
+            if (!localStorage.getItem('seedmart_data_source')) {
+                localStorage.setItem('seedmart_data_source', 'api');
+            }
+            
+            // Add event listener for the data source toggle button
+            document.getElementById('data-source-btn').addEventListener('click', toggleDataSource);
+        });
+
+        // Function to toggle between mock and API data
+        function toggleDataSource() {
+            const currentSource = localStorage.getItem('seedmart_data_source');
+            const newSource = currentSource === 'api' ? 'mock' : 'api';
+            
+            localStorage.setItem('seedmart_data_source', newSource);
+            
+            // Update the global variable in market-data.js
+            window.useApiData = newSource === 'api';
+            
+            // Refresh the data display
+            initMarketView();
+            
+            console.log(`Data source switched to: ${newSource}`);
+        }
     </script>
     <script src="market-data.js"></script>
 </body>

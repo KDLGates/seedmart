@@ -9,9 +9,26 @@ document.addEventListener('DOMContentLoaded', () => {
   let chart;
   let volumeChart;
 
-  // Set up server time update
+  // If we have a valid connection, this sets the data toggle
+  let useApiData = localStorage.getItem('seedmart_data_source') === 'api';
+
+  // Error handling utility
+  function showErrorMessage(message, duration = 5000) {
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'error-toast';
+    errorContainer.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(errorContainer);
+    setTimeout(() => errorContainer.remove(), duration);
+  }
+
+  // Set up server time update with error handling
   function updateServerTime() {
     const serverTimeElement = document.getElementById('server-time');
+    if (!serverTimeElement) return;
+    
     const now = new Date();
     serverTimeElement.textContent = `Server time: ${now.toLocaleTimeString()}`;
   }
@@ -19,16 +36,41 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateServerTime, 1000);
   updateServerTime();
 
-  // Fetch market data from API
-  async function fetchMarketData() {
+  // Fetch market data from API with retry mechanism
+  async function fetchMarketData(retries = 3) {
+    // Skip API call if mock data is selected
+    if (!useApiData) {
+      return MOCK_MARKET_DATA;
+    }
+    
     try {
-      const response = await fetch(`${API_URL}/market/summary`);
+      const token = localStorage.getItem('seedmart_token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(`${API_URL}/market/summary`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid, try to refresh
+          await refreshToken();
+          if (retries > 0) {
+            return fetchMarketData(retries - 1);
+          }
+        }
         throw new Error(`API responded with status: ${response.status}`);
       }
+
       const data = await response.json();
-      marketData = data.seeds;
-      updateMarketStats(data.marketStats);
+      marketData = data.seeds || [];
+      if (data.marketStats) {
+        updateMarketStats(data.marketStats);
+      }
       return marketData;
     } catch (error) {
       console.error('Error fetching market data:', error);
@@ -37,11 +79,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Update market statistics display
+  // Token refresh mechanism
+  async function refreshToken() {
+    const refreshToken = localStorage.getItem('seedmart_refresh_token');
+    if (!refreshToken) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+
+      if (!response.ok) {
+        throw new Error('Token refresh failed');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('seedmart_token', data.access_token);
+    } catch (error) {
+      localStorage.clear();
+      window.location.href = '/login.html';
+    }
+  }
+
+  // Update market statistics display with animation
   function updateMarketStats(stats) {
-    document.getElementById('market-volume').textContent = '$' + stats.totalVolume.toLocaleString();
-    document.getElementById('market-cap').textContent = '$' + stats.marketCap.toLocaleString();
-    document.getElementById('seed-count').textContent = stats.seedCount;
+    if (!stats) return;
+    
+    const elements = {
+      totalVolume: document.getElementById('total-volume'),
+      activeSeeds: document.getElementById('active-seeds'),
+      marketTrend: document.getElementById('market-trend')
+    };
+
+    for (const [key, element] of Object.entries(elements)) {
+      if (element && stats[key] !== undefined) {
+        const value = stats[key];
+        if (typeof value === 'number') {
+          animateValue(element, value);
+        } else {
+          element.textContent = value;
+        }
+      }
+    }
   }
 
   // Fetch price history for a specific seed
@@ -447,12 +533,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize market view
   async function initMarketView() {
-    const data = await fetchMarketData();
-    if (data.length > 0) {
-      initChart(data);
-      updateTrendingLists(data);
+    // Update UI to reflect current data source
+    updateDataSourceButton();
+    
+    try {
+      // Load data based on the current setting
+      const data = useApiData ? await fetchMarketData() : MOCK_MARKET_DATA;
+      
+      // Update the global market data
+      marketData = data;
+      
+      // Update all UI components
       await updateMarketTable(data);
-      initializeTradeButtons();
+      updateTrendingLists(data);
+      
+      // Initialize chart with top performing seeds
+      if (data.length > 0) {
+        const topSeeds = [...data]
+          .sort((a, b) => b.changePercent - a.changePercent)
+          .slice(0, 3);
+        await initChart(topSeeds);
+      }
+    } catch (error) {
+      console.error('Failed to initialize market view:', error);
+      showErrorMessage('Failed to load market data. Please try again later.');
+    }
+  }
+
+  // Add this function to update the button text
+  function updateDataSourceButton() {
+    const label = document.querySelector('.data-source-label');
+    if (label) {
+      label.textContent = useApiData ? 'Live API' : 'Mock Data';
     }
   }
 
@@ -543,6 +655,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
         </tr>
       `;
+    }
+  }
+
+  // Initialize auto-update mechanism
+  function initAutoUpdate() {
+    if (autoUpdateEnabled) {
+      setInterval(fetchMarketData, 30000); // Update every 30 seconds
     }
   }
 

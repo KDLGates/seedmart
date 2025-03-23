@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const seedList = document.getElementById("seed-list");
   const seedForm = document.getElementById("seed-form");
 
-  const API_URL = "http://localhost:5000/api";
+  const API_URL = "http://172.28.204.98:5000/api";
 
   // Fetch and display seeds
   async function fetchSeeds() {
