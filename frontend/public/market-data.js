@@ -556,6 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function generateSparkline(seed, trend) {
     const sparklineCanvas = document.createElement('canvas');
     sparklineCanvas.className = 'sparkline';
+    // Set fixed dimensions for consistent chart size
+    sparklineCanvas.width = 120;
+    sparklineCanvas.height = 40;
+    sparklineCanvas.style.width = '120px';
+    sparklineCanvas.style.height = '40px';
     
     // If we have price history, use it; otherwise fetch it or use empty array
     let priceData = seed.priceHistory || [];
@@ -592,6 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return loadingDiv;
     }
     
+    // Normalize price data to fit the same y-axis range for all seeds
+    const normalizedData = normalizeChartData(priceData);
+    
     const hash = seed.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const r = (hash * 123) % 200 + 55;
     const g = (hash * 456) % 200 + 55;
@@ -603,9 +611,9 @@ document.addEventListener('DOMContentLoaded', () => {
     new Chart(sparkCtx, {
       type: 'line',
       data: {
-        labels: Array(priceData.length).fill(''),
+        labels: Array(normalizedData.length).fill(''),
         datasets: [{
-          data: priceData,
+          data: normalizedData,
           borderColor: trend > 0 ? '#26a69a' : '#ef5350',
           borderWidth: 1.5,
           pointRadius: 0,
@@ -614,8 +622,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: true,
+        responsive: false, // Prevent responsive resizing
+        maintainAspectRatio: false, // Prevent aspect ratio constraints
         animation: {
           duration: 600
         },
@@ -632,7 +640,9 @@ document.addEventListener('DOMContentLoaded', () => {
             display: false
           },
           y: {
-            display: false
+            display: false,
+            min: 0,    // Always start from 0
+            max: 100,  // Always use 0-100 scale for normalized data
           }
         },
         elements: {
@@ -644,6 +654,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     return sparklineCanvas;
+  }
+  
+  // Helper function to normalize chart data to 0-100 range for consistent visualization
+  function normalizeChartData(data) {
+    if (!data || data.length === 0) return [];
+    
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    
+    // If all values are the same, return a flat line at 50
+    if (min === max) {
+      return data.map(() => 50);
+    }
+    
+    // Normalize data to 0-100 range
+    return data.map(value => ((value - min) / (max - min)) * 100);
   }
   
   // Update trending lists

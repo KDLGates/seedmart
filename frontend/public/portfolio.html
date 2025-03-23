@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Portfolio | SeedMart</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <h1>SeedMart</h1>
+            <p>Professional Seed Trading Platform</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/" id="market-view-tab" title="Go to market view">Market View</a></li>
+            </ul>
+        </nav>
+
+        <div id="auth-section" class="user-profile">
+            <!-- This will be populated by JavaScript based on auth state -->
+        </div>
+    </header>
+
+    <main id="app">
+        <section class="portfolio-container">
+            <div class="portfolio-card">
+                <div class="portfolio-card-header">
+                    <h1 class="portfolio-card-title">Seed Portfolio</h1>
+                    <button class="portfolio-add-btn">
+                        <i class="fas fa-plus"></i> Add Seeds
+                    </button>
+                </div>
+
+                <div class="portfolio-overview">
+                    <div class="portfolio-stat">
+                        <div class="portfolio-stat-value" id="total-seeds">0</div>
+                        <div class="portfolio-stat-label">Total Seeds</div>
+                    </div>
+                    <div class="portfolio-stat">
+                        <div class="portfolio-stat-value" id="total-value">$0.00</div>
+                        <div class="portfolio-stat-label">Portfolio Value</div>
+                    </div>
+                    <div class="portfolio-stat">
+                        <div class="portfolio-stat-value" id="daily-change">0%</div>
+                        <div class="portfolio-stat-label">24h Change</div>
+                    </div>
+                </div>
+
+                <div class="portfolio-holdings">
+                    <table class="portfolio-table">
+                        <thead>
+                            <tr>
+                                <th>Seed</th>
+                                <th>Quantity</th>
+                                <th>Value</th>
+                                <th>24h %</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolio-table-body">
+                            <!-- Will be populated by JavaScript -->
+                            <tr>
+                                <td colspan="5" class="portfolio-empty">
+                                    <p>You don't have any seeds in your portfolio yet.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 SeedMart - Professional Seed Trading Platform</p>
+            <p><small>Disclaimer: This is a mock trading platform for demonstration purposes only.</small></p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check login status
+            const authSection = document.getElementById('auth-section');
+            const token = localStorage.getItem('seedmart_token');
+            const user = JSON.parse(localStorage.getItem('seedmart_user') || '{}');
+
+            if (token && user.username) {
+                // User is logged in, show profile
+                const initials = (user.first_name && user.last_name) ?
+                    (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase() :
+                    user.username.substring(0, 2).toUpperCase();
+
+                authSection.innerHTML = `
+                    <div class="user-avatar">${initials}</div>
+                    <span class="user-name">${user.username}</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <ul>
+                            <li><a href="/profile.html" title="View your profile"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a href="/portfolio.html" title="View your seed portfolio"><i class="fas fa-seedling"></i> Portfolio</a></li>
+                            <li><a href="#" title="Account settings"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><a href="#" id="logout-btn" class="logout-btn" title="Log out"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                `;
+
+                // Add event listeners for dropdown
+                authSection.addEventListener('click', () => {
+                    document.getElementById('user-dropdown').classList.toggle('active');
+                });
+
+                // Logout button functionality
+                document.getElementById('logout-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('seedmart_token');
+                    localStorage.removeItem('seedmart_user');
+                    window.location.href = '/';
+                });
+
+                // Close dropdown when clicking elsewhere
+                document.addEventListener('click', (e) => {
+                    if (!authSection.contains(e.target)) {
+                        document.getElementById('user-dropdown').classList.remove('active');
+                    }
+                });
+
+                // Load portfolio data (mock data for now)
+                loadPortfolioData();
+            } else {
+                // Not logged in, redirect to login
+                window.location.href = '/login.html';
+            }
+        });
+
+        function loadPortfolioData() {
+            // For now, use mock data until we implement the database
+            const mockPortfolio = [
+                { name: 'Tomato Seeds', quantity: 100, price: 2.45, change: 5.2 },
+                { name: 'Cucumber Seeds', quantity: 75, price: 1.87, change: -2.1 },
+                { name: 'Sunflower Seeds', quantity: 200, price: 0.95, change: 1.3 }
+            ];
+
+            // Update summary stats
+            let totalSeeds = 0;
+            let totalValue = 0;
+            let weightedChange = 0;
+
+            mockPortfolio.forEach(item => {
+                totalSeeds += item.quantity;
+                const itemValue = item.quantity * item.price;
+                totalValue += itemValue;
+                weightedChange += (item.change * itemValue);
+            });
+
+            const avgChange = weightedChange / totalValue;
+
+            document.getElementById('total-seeds').textContent = totalSeeds;
+            document.getElementById('total-value').textContent = `$${totalValue.toFixed(2)}`;
+            document.getElementById('daily-change').textContent = `${avgChange.toFixed(2)}%`;
+            document.getElementById('daily-change').style.color = avgChange >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
+
+            // Populate table
+            const tableBody = document.getElementById('portfolio-table-body');
+            tableBody.innerHTML = '';
+
+            if (mockPortfolio.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="portfolio-empty">
+                            <p>You don't have any seeds in your portfolio yet.</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                mockPortfolio.forEach(item => {
+                    const itemValue = (item.quantity * item.price).toFixed(2);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div class="portfolio-item-name">
+                                <i class="fas fa-seedling portfolio-item-icon"></i>
+                                ${item.name}
+                            </div>
+                        </td>
+                        <td>${item.quantity}</td>
+                        <td>$${itemValue}</td>
+                        <td style="color: ${item.change >= 0 ? 'var(--success-color)' : 'var(--danger-color)'}">
+                            ${item.change >= 0 ? '+' : ''}${item.change}%
+                        </td>
+                        <td>
+                            <div class="portfolio-actions">
+                                <button class="action-btn" title="Buy more"><i class="fas fa-plus-circle"></i></button>
+                                <button class="action-btn" title="Sell seeds"><i class="fas fa-minus-circle"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+    </script>
+    <script src="market-data.js"></script>
+</body>
+
+</html>
