@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models.models import db, Seed, SeedPrice
+from services.market import MarketService
 from datetime import datetime, timedelta
 from sqlalchemy import desc
 
@@ -15,39 +16,12 @@ def get_seed(id):
     seed = Seed.query.get_or_404(id)
     return jsonify(seed.to_dict())
 
-@api.route('/seeds/<int:id>/prices', methods=['GET'])
-def get_seed_prices(id):
-    # Check if seed exists
-    seed = Seed.query.get_or_404(id)
-    
-    # Get timeframe from query params (default to 1 week)
+@api.route('/seeds/<int:seed_id>/prices', methods=['GET'])
+def get_seed_prices(seed_id):
+    """Get price history for a specific seed"""
     timeframe = request.args.get('timeframe', '1w')
-    
-    # Map timeframe strings to days
-    timeframe_days = {
-        '1d': 1,
-        '1w': 7,
-        '1m': 30,
-        '3m': 90,
-        '1y': 365,
-        'all': None  # None means all data
-    }
-    
-    days = timeframe_days.get(timeframe, 7)  # Default to 7 days if invalid timeframe
-    
-    # Build query for price history
-    query = SeedPrice.query.filter_by(seed_id=id)
-    
-    # Apply timeframe filter if specified (other than 'all')
-    if days is not None:
-        cutoff_date = datetime.now() - timedelta(days=days)
-        query = query.filter(SeedPrice.recorded_at >= cutoff_date)
-    
-    # Order by recorded_at to get chronological data
-    prices = query.order_by(SeedPrice.recorded_at).all()
-    
-    # Return price history as list of dictionaries
-    return jsonify([price.to_dict() for price in prices])
+    price_history = MarketService.get_price_history(seed_id, timeframe)
+    return jsonify(price_history)
 
 @api.route('/seeds/<int:id>/latest-price', methods=['GET'])
 def get_seed_latest_price(id):
@@ -64,40 +38,18 @@ def get_seed_latest_price(id):
 
 @api.route('/market/summary', methods=['GET'])
 def get_market_summary():
-    # Get all seeds
-    seeds = Seed.query.all()
-    
-    # For each seed, get the latest price
-    summaries = []
-    for seed in seeds:
-        latest_price = SeedPrice.query.filter_by(seed_id=seed.id).order_by(desc(SeedPrice.recorded_at)).first()
-        previous_price = SeedPrice.query.filter_by(seed_id=seed.id).order_by(desc(SeedPrice.recorded_at)).offset(1).first()
-        
-        if latest_price:
-            # Calculate change and change percentage
-            current_price = latest_price.price
-            previous_price_value = previous_price.price if previous_price else current_price
-            
-            change = round(current_price - previous_price_value, 2)
-            change_percent = round((change / previous_price_value * 100), 1) if previous_price_value > 0 else 0
-            
-            # Create summary object
-            summary = {
-                'id': seed.id,
-                'name': seed.name,
-                'species': seed.species,
-                'currentPrice': current_price,
-                'previousPrice': previous_price_value,
-                'change': change,
-                'changePercent': change_percent,
-                'volume': latest_price.volume,
-                'description': seed.description,
-                'recorded_at': latest_price.recorded_at.isoformat()
-            }
-            
-            summaries.append(summary)
-    
-    return jsonify(summaries)
+    """Get market summary with current prices and statistics"""
+    market_data = MarketService.get_market_summary()
+    return jsonify(market_data)
+
+@api.route('/market/update', methods=['POST'])
+def update_market():
+    """Update all seed prices - should be called by a scheduled task"""
+    try:
+        updates = MarketService.update_seed_prices()
+        return jsonify({'success': True, 'updates': updates})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @api.route('/seeds', methods=['POST'])
 def create_seed():

@@ -6,7 +6,11 @@ from config import Config
 from models.models import db
 from routes.api import api
 from routes.auth import auth
-from seed_db import seed_database  # Import the seeding function
+from seed_db import seed_database
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from services.market import MarketService
+import atexit
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -25,6 +29,26 @@ jwt = JWTManager(app)
 # Register blueprints
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(auth, url_prefix='/api/auth')
+
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+
+# Add market update job - runs every 30 seconds
+scheduler.add_job(
+    func=MarketService.update_seed_prices,
+    trigger=IntervalTrigger(seconds=30),
+    id='update_market_prices',
+    name='Update seed market prices',
+    replace_existing=True,
+    max_instances=1,
+    coalesce=True  # Combine multiple pending runs into one
+)
+
+# Start the scheduler
+scheduler.start()
+
+# Shut down the scheduler when exiting the app
+atexit.register(lambda: scheduler.shutdown())
 
 @app.route('/api/health', methods=['GET'])
 def health_check():

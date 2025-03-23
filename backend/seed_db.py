@@ -1,4 +1,5 @@
 import random
+import math
 from datetime import datetime, timedelta
 from models.models import db, Seed, SeedPrice
 
@@ -34,77 +35,71 @@ def generate_description(name, species):
     ]
     return random.choice(descriptions)
 
-def generate_price_history(seed_id, base_price, days=365):
-    """Generate historical price data for a seed"""
+def generate_historical_prices(base_price, days=365):
+    """Generate historical price data with realistic market trends"""
     prices = []
-    trend = 1 if random.random() > 0.5 else -1  # Random trend direction
-    volatility = random.random() * 0.2 + 0.05  # How much the price fluctuates
-    price = base_price
+    current_price = base_price
+    volatility = 0.02  # Base volatility
+    trend = random.choice([-1, 1])  # Overall trend direction
+    trend_strength = random.uniform(0.001, 0.003)  # Subtle trend influence
     
-    now = datetime.now()
-    
-    # Generate price history for the specified number of days
-    for i in range(days, 0, -1):
-        # Add some randomness to the trend
-        change = (random.random() - 0.5) * volatility + (trend * 0.02)
-        price = max(0.2, price + price * change)  # Ensure price doesn't go too low
+    # Generate prices for each day
+    for day in range(days):
+        # Add seasonal and weekly patterns
+        seasonal_factor = math.sin(2 * math.pi * day / 365) * 0.1  # Annual cycle
+        weekly_factor = math.sin(2 * math.pi * day / 7) * 0.05    # Weekly cycle
         
-        # Create price entry for this day
-        date = now - timedelta(days=i)
-        price_entry = SeedPrice(
-            seed_id=seed_id,
-            price=round(price, 2),
-            volume=generate_volume(),
-            recorded_at=date
-        )
-        prices.append(price_entry)
+        # Calculate price change
+        random_change = (random.random() - 0.5) * volatility
+        trend_change = trend * trend_strength
+        total_change = random_change + trend_change + seasonal_factor + weekly_factor
+        
+        # Apply change with minimum price constraint
+        current_price = max(0.2, current_price * (1 + total_change))
+        
+        # Generate volume (higher on significant price changes)
+        volume = int(random.uniform(500, 10500) * (1 + abs(total_change) * 10))
+        
+        # Record datetime for this price point
+        recorded_at = datetime.now() - timedelta(days=days-day)
+        
+        prices.append({
+            'price': round(current_price, 2),
+            'volume': volume,
+            'recorded_at': recorded_at
+        })
     
     return prices
 
 def seed_database():
-    """Check if database is empty and seed with initial data if needed"""
-    # Check if there are any seeds in the database
-    seed_count = Seed.query.count()
-    
-    if seed_count == 0:
-        print("Database is empty. Seeding with initial mock data...")
-        
+    """Initialize database with seed data if empty"""
+    if Seed.query.first() is None:
+        print("Seeding database...")
         for seed_type in SEED_TYPES:
-            price = generate_base_price()
-            quantity = generate_volume()
-            description = generate_description(seed_type["name"], seed_type["species"])
-            
-            # Create the seed
+            # Create new seed
             new_seed = Seed(
-                name=seed_type["name"],
-                species=seed_type["species"],
-                quantity=quantity,
-                price=price,
-                description=description
+                name=seed_type['name'],
+                species=seed_type['species'],
+                description=generate_description(seed_type['name'], seed_type['species'])
             )
             db.session.add(new_seed)
-            db.session.flush()  # Flush to get the ID without committing
+            db.session.flush()  # Flush to get the ID
             
             # Generate and add historical price data
-            price_history = generate_price_history(new_seed.id, price)
-            db.session.add_all(price_history)
+            base_price = random.uniform(1, 6)
+            price_history = generate_historical_prices(base_price)
+            
+            # Add price records
+            for price_data in price_history:
+                price_record = SeedPrice(
+                    seed_id=new_seed.id,
+                    price=price_data['price'],
+                    volume=price_data['volume'],
+                    recorded_at=price_data['recorded_at']
+                )
+                db.session.add(price_record)
         
         db.session.commit()
-        print(f"Successfully added {len(SEED_TYPES)} seed types with historical price data to the database.")
+        print("Database seeded successfully!")
     else:
-        print(f"Database already contains {seed_count} seeds. Checking price history...")
-        
-        # Check if we have price history for existing seeds
-        price_count = SeedPrice.query.count()
-        if price_count == 0:
-            print("No price history found. Generating historical price data for existing seeds...")
-            
-            seeds = Seed.query.all()
-            for seed in seeds:
-                price_history = generate_price_history(seed.id, seed.price)
-                db.session.add_all(price_history)
-            
-            db.session.commit()
-            print(f"Successfully added historical price data for {len(seeds)} existing seeds.")
-        else:
-            print(f"Database already contains {price_count} price history records. Skipping price data initialization.")
+        print("Database already contains data. Skipping seed operation.")
