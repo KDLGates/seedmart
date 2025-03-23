@@ -9,7 +9,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=/api
+      - PORT=3000
+      - REACT_APP_API_URL=http://backend:5000/api
     depends_on:
       - backend
     networks:
@@ -24,6 +25,7 @@ services:
     environment:
       - FLASK_ENV=production
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SECRET_KEY=${SECRET_KEY}
     networks:
       - seedmart-network
 

@@ -17,7 +17,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
     ports:
-      - "80:3000"
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REACT_APP_API_URL=http://backend:5000/api
     depends_on:
       - backend
 
