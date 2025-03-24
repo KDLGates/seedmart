@@ -19,9 +19,26 @@ def get_seed(id):
 @api.route('/seeds/<int:seed_id>/prices', methods=['GET'])
 def get_seed_prices(seed_id):
     """Get price history for a specific seed"""
-    timeframe = request.args.get('timeframe', '1w')
-    price_history = MarketService.get_price_history(seed_id, timeframe)
-    return jsonify(price_history)
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        timeframe = request.args.get('timeframe', '1w')
+        logger.info(f"API endpoint: Fetching price history for seed_id: {seed_id} with timeframe {timeframe}")
+        
+        price_history = MarketService.get_price_history(seed_id, timeframe)
+        
+        if not price_history:
+            logger.warning(f"No price history found for seed_id: {seed_id}")
+            # Return empty array instead of 404 to avoid frontend errors
+            return jsonify([])
+            
+        logger.info(f"Successfully retrieved {len(price_history)} price records")
+        return jsonify(price_history)
+        
+    except Exception as e:
+        logger.exception(f"Error in get_seed_prices endpoint: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred processing your request"}), 500
 
 @api.route('/seeds/<int:id>/latest-price', methods=['GET'])
 def get_seed_latest_price(id):

@@ -95,23 +95,22 @@ class MarketService:
             
             logger.info(f"Fetching price history for seed ID {seed_id} with timeframe {timeframe}")
             
-            prices = (SeedPrice.query
-                    .filter(SeedPrice.seed_id == seed_id,
-                            SeedPrice.recorded_at >= cutoff_date)
-                    .order_by(SeedPrice.recorded_at)
-                    .all())
-            
-            result = [price.to_dict() for price in prices]
-            logger.info(f"Found {len(result)} price records for seed ID {seed_id}")
-            
-            # If no records found, check if the table exists or has data
-            if not result:
-                count = SeedPrice.query.count()
-                logger.warning(f"No price records found for seed ID {seed_id}. Total records in SeedPrice table: {count}")
+            try:
+                # Try to get prices with SQLAlchemy
+                prices = (SeedPrice.query
+                        .filter(SeedPrice.seed_id == seed_id,
+                                SeedPrice.recorded_at >= cutoff_date)
+                        .order_by(SeedPrice.recorded_at)
+                        .all())
                 
-                # Create a placeholder entry if none exists
-                if count == 0:
-                    logger.info(f"Creating initial price history for seed ID {seed_id}")
+                if prices:
+                    result = [price.to_dict() for price in prices]
+                    logger.info(f"Found {len(result)} price records for seed ID {seed_id}")
+                    return result
+                else:
+                    logger.warning(f"No price records found for seed ID {seed_id}. Creating a default entry.")
+                    
+                    # Create a placeholder entry if none exists
                     new_price = SeedPrice(
                         seed_id=seed_id,
                         price=seed.price or MarketService.calculate_base_price(),
@@ -121,11 +120,55 @@ class MarketService:
                     db.session.add(new_price)
                     db.session.commit()
                     return [new_price.to_dict()]
-            
-            return result
+                    
+            except Exception as e:
+                logger.exception(f"Error querying SeedPrice table: {str(e)}")
+                
+                # Try fallback approach with direct connection
+                import os
+                import psycopg2
+                
+                DATABASE_URL = (os.environ.get('DATABASE_URL') or 
+                               os.environ.get('INT_DB_URL') or 
+                               os.environ.get('FLASK_DB_URL'))
+                
+                if not DATABASE_URL:
+                    logger.error("No database URL configured for fallback query")
+                    return []
+                    
+                try:
+                    conn = psycopg2.connect(DATABASE_URL)
+                    cur = conn.cursor()
+                    
+                    # Query using direct SQL
+                    cur.execute("""
+                        SELECT recorded_at, price, volume
+                        FROM seed_price
+                        WHERE seed_id = %s
+                        ORDER BY recorded_at
+                    """, (seed_id,))
+                    
+                    result = []
+                    for row in cur.fetchall():
+                        result.append({
+                            'date': row[0].strftime('%Y-%m-%d'),
+                            'recorded_at': row[0].isoformat(),
+                            'price': float(row[1]),
+                            'volume': row[2] or 0
+                        })
+                    
+                    cur.close()
+                    conn.close()
+                    
+                    logger.info(f"Found {len(result)} price records using direct SQL query")
+                    return result
+                    
+                except Exception as sql_error:
+                    logger.exception(f"Error in fallback SQL query: {str(sql_error)}")
+                    return []
             
         except Exception as e:
-            logger.exception(f"Error in get_price_history for seed_id {seed_id}: {str(e)}")
+            logger.exception(f"Unexpected error in get_price_history for seed_id {seed_id}: {str(e)}")
             return []
 
     @staticmethod

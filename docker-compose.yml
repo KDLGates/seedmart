@@ -5,24 +5,41 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    expose:
+      - "5000"  # Only expose internally
     ports:
-      - "5000:5000"
+      - "5000:5000"  # For development access
     environment:
       - FLASK_ENV=production
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}
       - SECRET_KEY=${SECRET_KEY}
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend 
       dockerfile: Dockerfile.prod
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
+      - "80:3000"   # HTTP
+      - "443:3000"  # HTTPS
     depends_on:
       - backend
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://backend:5000
+
+  db:
+    image: postgres:14
+    expose:
+      - "5432"  # Only expose internally
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
 
 networks:
   default:

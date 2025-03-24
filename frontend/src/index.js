@@ -37,13 +37,14 @@ app.use((req, res, next) => {
 
 // API proxy middleware
 app.use('/api', createProxyMiddleware({
-  target: process.env.API_URL || `http://localhost:${API_PORT}/api`,
+  target: process.env.API_URL || `http://localhost:${API_PORT}`,
   changeOrigin: true,
   pathRewrite: {
     '^/api': '/api'
   },
+  logLevel: 'debug',
   onProxyReq: (proxyReq, req) => {
-    console.log(`Proxying request to API: ${req.method} ${req.url}`);
+    console.log(`Proxying request to API: ${req.method} ${req.url} -> ${process.env.API_URL || `http://localhost:${API_PORT}`}`);
   },
   onError: (err, req, res) => {
     console.error('Proxy error:', err);
