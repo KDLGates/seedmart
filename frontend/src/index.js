@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const http = require('http');
 require('dotenv').config();
 
 const app = express();
@@ -13,7 +14,7 @@ app.use(express.json());
 
 // Logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - IP: ${req.ip} - Host: ${req.headers.host} - User-Agent: ${req.headers['user-agent']}`);
   next();
 });
 
@@ -25,33 +26,48 @@ app.use('/api', createProxyMiddleware({
     '^/api': '/api'
   },
   onProxyReq: (proxyReq, req) => {
-    // Log proxy requests in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Proxying request:', req.method, req.url);
-    }
+    console.log(`Proxying request to API: ${req.method} ${req.url}`);
+  },
+  onError: (err, req, res) => {
+    console.error('Proxy error:', err);
+    res.status(500).send('Proxy Error: Cannot connect to API server');
   }
 }));
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
+  index: false // Don't automatically serve index.html, let our explicit route handle it
+}));
 
 // Health check endpoint for AWS
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Handle all other routes by serving index.html
+// Explicit route for the root to ensure index.html is served
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Handle all other routes by serving index.html for SPA behavior
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Error handling middleware
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+  console.error('Server error:', err);
+  res.status(500).send('Server Error: Something went wrong');
 });
 
-app.listen(PORT, () => {
-  console.log(`Frontend server running on port ${PORT}`);
-  console.log(`API proxy target: ${process.env.API_URL || 'http://backend:5000'}`);
+// Create and start the server
+const server = http.createServer(app);
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`=== Frontend server started ===`);
+  console.log(`- Listening on port: ${PORT}`);
+  console.log(`- Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`- API proxy target: ${process.env.API_URL || 'http://backend:5000'}`);
+  console.log(`- Server date/time: ${new Date().toISOString()}`);
 });
