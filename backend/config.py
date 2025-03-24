@@ -13,7 +13,7 @@ class Config:
         os.environ.get('EXT_DB_URL') or      # Then try external Render URL
         os.environ.get('FLASK_DB_URL') or    # Then try FLASK_DB_URL
         os.environ.get('DB_URL') or          # Then try local DB_URL
-        'postgresql+psycopg2://seedmart:seedmart@localhost:5432/seedmart'  # Fallback
+        'postgresql+psycopg2://seedmart:seedmart@seed-mart.com:5432/seedmart'  # Fallback
     )
     
     # Log the database URI

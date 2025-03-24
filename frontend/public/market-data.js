@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // API configuration
-  const API_URL = 'https://seed-mart.com:5000/api';
+  const API_URL = '/api';
   let marketData = [];
   let selectedSeed = null;
   let chartType = 'line';

@@ -35,16 +35,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// API proxy middleware
 app.use('/api', createProxyMiddleware({
-  target: process.env.API_URL || `http://localhost:${API_PORT}`,
+  target: process.env.API_URL || `http://seed-mart.com:${API_PORT}`,
   changeOrigin: true,
-  pathRewrite: {
-    '^/api': '/api'
-  },
-  logLevel: 'debug',
+  // Remove redundant pathRewrite or modify if needed
+  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
+  timeout: 30000, // 30 second timeout
+  proxyTimeout: 31000, // slightly longer proxy timeout
   onProxyReq: (proxyReq, req) => {
-    console.log(`Proxying request to API: ${req.method} ${req.url} -> ${process.env.API_URL || `http://localhost:${API_PORT}`}`);
+    console.log(`Proxying request to API: ${req.method} ${req.url}`);
   },
   onError: (err, req, res) => {
     console.error('Proxy error:', err);
@@ -86,7 +85,7 @@ httpServer.listen(HTTP_PORT, '0.0.0.0', () => {
   console.log(`=== HTTP server started ===`);
   console.log(`- Listening on port: ${HTTP_PORT}`);
   console.log(`- Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`- API proxy target: ${process.env.API_URL || `http://localhost:${API_PORT}`}`);
+  console.log(`- API proxy target: ${process.env.API_URL || `http://seed-mart.com:${API_PORT}`}`);
   console.log(`- Server date/time: ${new Date().toISOString()}`);
 });
 

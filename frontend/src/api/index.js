@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.API_URL || '/api';
 
 export const getItems = async () => {
     const response = await axios.get(`${API_URL}/items`);

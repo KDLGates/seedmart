@@ -12,6 +12,10 @@ class MarketService:
     @staticmethod
     def calculate_price_change(current_price, volatility=0.02):
         """Calculate price change with controlled volatility"""
+        # Convert Decimal to float if needed
+        if hasattr(current_price, 'is_finite'):  # Check if it's a Decimal
+            current_price = float(current_price)
+            
         trend = 1 if random.random() > 0.5 else -1
         change = (random.random() - 0.5) * volatility + (trend * 0.02)
         new_price = max(0.2, current_price + current_price * change)
