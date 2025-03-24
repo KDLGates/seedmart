@@ -519,70 +519,104 @@ document.addEventListener('DOMContentLoaded', () => {
   // Update market table
   async function updateMarketTable(data) {
     const tableBody = document.getElementById('market-data');
-    const sortBy = document.getElementById('sort-by').value;
-    const searchTerm = document.getElementById('search-seeds').value.toLowerCase();
+    if (!tableBody) return;
+    
+    const sortBy = document.getElementById('sort-by')?.value || 'name';
+    const searchTerm = document.getElementById('search-seeds')?.value?.toLowerCase() || '';
+    
+    if (!data || !Array.isArray(data)) {
+      tableBody.innerHTML = '<tr><td colspan="7">No market data available</td></tr>';
+      return;
+    }
     
     let filteredData = searchTerm ? 
-      data.filter(seed => seed.name.toLowerCase().includes(searchTerm) || 
-                          seed.species.toLowerCase().includes(searchTerm)) : 
+      data.filter(seed => (seed.name?.toLowerCase() || '').includes(searchTerm) || 
+                          (seed.species?.toLowerCase() || '').includes(searchTerm)) : 
       data;
     
-    switch(sortBy) {
-      case 'name':
-        filteredData.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'price':
-        filteredData.sort((a, b) => b.currentPrice - a.currentPrice);
-        break;
-      case 'change':
-        filteredData.sort((a, b) => b.changePercent - a.changePercent);
-        break;
-      case 'volume':
-        filteredData.sort((a, b) => b.volume - a.volume);
-        break;
-    }
-    
-    tableBody.innerHTML = '';
-    
-    for (const seed of filteredData) {
-      const row = document.createElement('tr');
-      
-      if (selectedSeed && selectedSeed.name === seed.name) {
-        row.classList.add('active');
+    try {
+      switch(sortBy) {
+        case 'name':
+          filteredData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+          break;
+        case 'price':
+          filteredData.sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0));
+          break;
+        case 'change':
+          filteredData.sort((a, b) => (b.changePercent || 0) - (a.changePercent || 0));
+          break;
+        case 'volume':
+          filteredData.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+          break;
       }
       
-      const priceChangeClass = seed.change > 0 ? 'price-up' : 'price-down';
-      const changeSymbol = seed.change > 0 ? '+' : '';
+      tableBody.innerHTML = '';
       
-      const sparklineCell = document.createElement('td');
-      sparklineCell.appendChild(await generateSparkline(seed, seed.change));
-      
-      row.innerHTML = `
-        <td>${seed.name}</td>
-        <td>${seed.species}</td>
-        <td>$${seed.currentPrice}</td>
-        <td class="${priceChangeClass}">${changeSymbol}${seed.change} (${changeSymbol}${seed.changePercent}%)</td>
-        <td>${seed.volume.toLocaleString()}</td>
-        <td><button class="trade-btn">Trade</button></td>
-      `;
-      
-      row.insertBefore(sparklineCell, row.children[5]);
-      
-      row.addEventListener('click', (e) => {
-        if (e.target.classList.contains('trade-btn')) return;
-        
-        document.querySelectorAll('#market-data tr').forEach(row => row.classList.remove('active'));
-        row.classList.add('active');
-        
-        document.querySelectorAll('.trend-list li').forEach(item => item.classList.remove('selected'));
-        
-        selectedSeed = seed;
-        initChart([seed]);
-      });
-      
-      tableBody.appendChild(row);
+      // Limit the number of concurrent sparkline generations
+      const batchSize = 5;
+      for (let i = 0; i < filteredData.length; i += batchSize) {
+        const batch = filteredData.slice(i, i + batchSize);
+        await Promise.all(batch.map(async (seed) => {
+          try {
+            const row = document.createElement('tr');
+            
+            if (selectedSeed && selectedSeed.name === seed.name) {
+              row.classList.add('active');
+            }
+            
+            const change = seed.change || 0;
+            const priceChangeClass = change > 0 ? 'price-up' : 'price-down';
+            const changeSymbol = change > 0 ? '+' : '';
+            
+            // Create basic row structure first
+            row.innerHTML = `
+              <td>${seed.name || 'Unknown'}</td>
+              <td>${seed.species || 'Unknown'}</td>
+              <td>$${(seed.currentPrice || 0).toFixed(2)}</td>
+              <td class="${priceChangeClass}">${changeSymbol}${change.toFixed(2)} (${changeSymbol}${(seed.changePercent || 0).toFixed(2)}%)</td>
+              <td>${(seed.volume || 0).toLocaleString()}</td>
+              <td></td>
+              <td><button class="trade-btn">Trade</button></td>
+            `;
+            
+            // Add sparkline with error handling
+            const sparklineCell = row.children[5];
+            try {
+              if (seed.id) {
+                const sparkline = await generateSparkline(seed, change);
+                sparklineCell.appendChild(sparkline);
+              } else {
+                sparklineCell.textContent = 'N/A';
+              }
+            } catch (sparklineError) {
+              console.error(`Failed to generate sparkline for ${seed.name}:`, sparklineError);
+              sparklineCell.textContent = 'Error';
+            }
+            
+            // Add event listeners
+            row.addEventListener('click', (e) => {
+              if (e.target.classList.contains('trade-btn')) return;
+              
+              document.querySelectorAll('#market-data tr').forEach(r => r.classList.remove('active'));
+              row.classList.add('active');
+              
+              document.querySelectorAll('.trend-list li').forEach(item => item.classList.remove('selected'));
+              
+              selectedSeed = seed;
+              initChart([seed]);
+            });
+            
+            tableBody.appendChild(row);
+          } catch (rowError) {
+            console.error(`Failed to create row for seed ${seed?.name || 'unknown'}:`, rowError);
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating market table:', error);
+      tableBody.innerHTML = `<tr><td colspan="7">Error loading market data: ${error.message}</td></tr>`;
     }
-  }
+}
 
   // Initialize market view
   async function initMarketView() {
