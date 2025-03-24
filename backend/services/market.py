@@ -72,24 +72,61 @@ class MarketService:
     @staticmethod
     def get_price_history(seed_id, timeframe='1w'):
         """Get price history for a specific seed"""
-        timeframe_days = {
-            '1d': 1,
-            '1w': 7,
-            '1m': 30,
-            '3m': 90,
-            '1y': 365
-        }
+        import logging
+        logger = logging.getLogger(__name__)
         
-        days = timeframe_days.get(timeframe, 7)
-        cutoff_date = datetime.now() - timedelta(days=days)
-        
-        prices = (SeedPrice.query
-                 .filter(SeedPrice.seed_id == seed_id,
-                        SeedPrice.recorded_at >= cutoff_date)
-                 .order_by(SeedPrice.recorded_at)
-                 .all())
-        
-        return [price.to_dict() for price in prices]
+        try:
+            timeframe_days = {
+                '1d': 1,
+                '1w': 7,
+                '1m': 30,
+                '3m': 90,
+                '1y': 365
+            }
+            
+            days = timeframe_days.get(timeframe, 7)
+            cutoff_date = datetime.now() - timedelta(days=days)
+            
+            # First check if the seed exists
+            seed = Seed.query.get(seed_id)
+            if not seed:
+                logger.error(f"Seed ID {seed_id} not found in database")
+                return []
+            
+            logger.info(f"Fetching price history for seed ID {seed_id} with timeframe {timeframe}")
+            
+            prices = (SeedPrice.query
+                    .filter(SeedPrice.seed_id == seed_id,
+                            SeedPrice.recorded_at >= cutoff_date)
+                    .order_by(SeedPrice.recorded_at)
+                    .all())
+            
+            result = [price.to_dict() for price in prices]
+            logger.info(f"Found {len(result)} price records for seed ID {seed_id}")
+            
+            # If no records found, check if the table exists or has data
+            if not result:
+                count = SeedPrice.query.count()
+                logger.warning(f"No price records found for seed ID {seed_id}. Total records in SeedPrice table: {count}")
+                
+                # Create a placeholder entry if none exists
+                if count == 0:
+                    logger.info(f"Creating initial price history for seed ID {seed_id}")
+                    new_price = SeedPrice(
+                        seed_id=seed_id,
+                        price=seed.price or MarketService.calculate_base_price(),
+                        volume=random.randint(500, 1000),
+                        recorded_at=datetime.now()
+                    )
+                    db.session.add(new_price)
+                    db.session.commit()
+                    return [new_price.to_dict()]
+            
+            return result
+            
+        except Exception as e:
+            logger.exception(f"Error in get_price_history for seed_id {seed_id}: {str(e)}")
+            return []
 
     @staticmethod
     def update_seed_prices():

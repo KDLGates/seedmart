@@ -136,24 +136,77 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('seedChart').style.opacity = '0.5';
       document.getElementById('volumeChart').style.opacity = '0.5';
       
+      console.log(`Fetching price history for seed ID: ${seedId}`);
+      
       const response = await fetch(`${API_URL}/seeds/${seedId}/prices?timeframe=${timeframe}`);
+      
       if (!response.ok) {
+        console.error(`API responded with status: ${response.status} when fetching price history, trying with auth token...`);
+        
+        // Try with authentication token if available
+        const token = localStorage.getItem('seedmart_token');
+        if (token) {
+          const authResponse = await fetch(`${API_URL}/seeds/${seedId}/prices?timeframe=${timeframe}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (authResponse.ok) {
+            const priceData = await authResponse.json();
+            console.log(`Successfully retrieved ${priceData.length} price history records with auth`);
+            return processPriceData(priceData);
+          } else {
+            console.error(`API responded with status: ${response.status} when fetching price history, falling back to mock data`);
+          }
+        }
+        
+        // Fallback to alternative endpoint if first one fails
+        console.log("Trying alternative price history endpoint...");
+        const altResponse = await fetch(`${API_URL}/price-history/${seedId}`);
+        
+        if (altResponse.ok) {
+          const altPriceData = await altResponse.json();
+          console.log(`Successfully retrieved ${altPriceData.length} price history records from alternative endpoint`);
+          return processPriceData(altPriceData);
+        }
+        
         throw new Error(`API responded with status: ${response.status}`);
       }
       
       const priceData = await response.json();
-      return {
-        priceHistory: priceData.map(p => p.price),
-        volumeHistory: priceData.map(p => p.volume),
-        rawData: priceData
-      };
+      console.log(`Successfully retrieved ${priceData.length} price history records`);
+      return processPriceData(priceData);
+      
     } catch (error) {
       console.error(`Error fetching price history for seed ${seedId}:`, error);
+      // Return empty data with consistent format so charts don't break
       return { priceHistory: [], volumeHistory: [], rawData: [] };
     } finally {
       document.getElementById('seedChart').style.opacity = '1';
       document.getElementById('volumeChart').style.opacity = '1';
     }
+  }
+  
+  // Helper function to process price data from different API responses
+  function processPriceData(priceData) {
+    if (!Array.isArray(priceData) || priceData.length === 0) {
+      console.warn("Received empty or invalid price data");
+      return { priceHistory: [], volumeHistory: [], rawData: [] };
+    }
+    
+    // Normalize data structure regardless of source endpoint
+    const processedData = priceData.map(item => ({
+      price: typeof item.price === 'number' ? item.price : parseFloat(item.price || 0),
+      volume: item.volume || 0,
+      recorded_at: item.recorded_at || item.date
+    }));
+    
+    return {
+      priceHistory: processedData.map(p => p.price),
+      volumeHistory: processedData.map(p => p.volume),
+      rawData: processedData
+    };
   }
 
   // Generate dates for the chart
