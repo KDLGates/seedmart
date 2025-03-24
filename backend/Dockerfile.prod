@@ -11,7 +11,6 @@ COPY . .
 RUN pip install gunicorn
 
 EXPOSE 5000
-EXPOSE 5432
 
 # Use gunicorn as the WSGI server for production with multiple workers
 # The formula (2 * CPU cores) + 1 is recommended for worker count

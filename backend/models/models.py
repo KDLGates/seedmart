@@ -83,12 +83,12 @@ class SeedPrice(db.Model):
     __tablename__ = 'seed_price'
 
     id = db.Column(db.Integer, primary_key=True)
-    seed_id = db.Column(db.Integer, db.ForeignKey('seed.id'), nullable=False)
+    seed_id = db.Column(db.Integer, db.ForeignKey('seeds.id'), nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     volume = db.Column(db.Integer)
     recorded_at = db.Column(db.DateTime, default=func.now(), nullable=False)
 
-    seed = db.relationship('Seed', backref=db.backref('price_history', lazy=True))
+    seed = db.relationship('Seed', back_populates="prices")
 
     def __repr__(self):
         return f'<SeedPrice {self.id}: {self.price} for seed {self.seed_id}>'
