@@ -8,8 +8,8 @@ const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
-const HTTP_PORT = process.env.HTTP_PORT || 80;
-const HTTPS_PORT = process.env.HTTPS_PORT || 443;
+const HTTP_PORT = process.env.HTTP_PORT || 3000; // Use port 3000 by default
+const HTTPS_PORT = process.env.HTTPS_PORT || 3443; // Changed from 443 for same reason
 const API_PORT = process.env.API_PORT || 5000;
 
 // SSL certificate options
