@@ -16,9 +16,11 @@ const API_PORT = process.env.API_PORT || 5000;
 let httpsOptions = {};
 try {
   httpsOptions = {
-    key: fs.readFileSync('/etc/ssl/private/selfsigned.key'),
-    cert: fs.readFileSync('/etc/ssl/private/selfsigned.crt')
+    key: fs.readFileSync(path.join(__dirname, '../../certs/privkey.pem')),
+    cert: fs.readFileSync(path.join(__dirname, '../../certs/cert.pem')),
+    ca: fs.readFileSync(path.join(__dirname, '../../certs/chain.pem'))
   };
+  console.log('SSL certificates loaded successfully');
 } catch (err) {
   console.warn('SSL certificates not found, HTTPS server will not start:', err.message);
 }
