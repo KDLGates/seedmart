@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // API configuration
-  const API_URL = 'postgresql://kdlgates:1iq8YdrAP1zABQRnxyGxLOvrWlMfnerS@dpg-cvg4as0gph6c73bgqagg-a.virginia-postgres.render.com/seedmart_qndr:5000/api';
+  const API_URL = 'https://seed-mart.com:5000/api';
   let marketData = [];
   let selectedSeed = null;
   let chartType = 'line';
@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let chart;
   let volumeChart;
 
-  // If we have a valid connection, this sets the data toggle
-  let useApiData = localStorage.getItem('seedmart_data_source') === 'api';
+  // Ensure consistent data source initialization from localStorage
+  let useApiData = localStorage.getItem('seedmart_data_source') !== 'mock';
 
   // Error handling utility
   function showErrorMessage(message, duration = 5000) {
@@ -654,6 +654,16 @@ document.addEventListener('DOMContentLoaded', () => {
       label.textContent = useApiData ? 'Live API' : 'Mock Data';
     }
   }
+
+  // Add window level access to these functions for the index.html script
+  window.updateDataSourceButton = updateDataSourceButton;
+  window.initMarketView = initMarketView;
+  window.toggleDataSource = function() {
+    useApiData = !useApiData;
+    localStorage.setItem('seedmart_data_source', useApiData ? 'api' : 'mock');
+    updateDataSourceButton();
+    initMarketView();
+  };
 
   // Auto-update market data
   let updateInterval;
