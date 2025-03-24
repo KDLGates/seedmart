@@ -182,6 +182,7 @@ if __name__ == '__main__':
             logger.error(f"Database initialization error: {e}")
             raise
     
-    # Get port from environment with fallback to 5000
-    port = int(os.environ.get('PORT', 5000))
+    # Force port 5000 and add debug logging
+    port = 5000  # Force port 5000
+    logger.info(f"Starting Flask server on port {port}")
     app.run(host='0.0.0.0', port=port, debug=not Config.IS_PRODUCTION, threaded=True)

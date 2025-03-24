@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // API configuration
-  const API_URL = 'http://localhost:5000/api';
+  const API_URL = 'postgresql://kdlgates:1iq8YdrAP1zABQRnxyGxLOvrWlMfnerS@dpg-cvg4as0gph6c73bgqagg-a.virginia-postgres.render.com/seedmart_qndr:5000/api';
   let marketData = [];
   let selectedSeed = null;
   let chartType = 'line';

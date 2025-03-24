@@ -1,15 +1,36 @@
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
 # Copy app files
 COPY . .
 
+# If your app has a build step, uncomment the following:
+# RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy only production dependencies and built files
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/src ./src
+COPY --from=build /app/public ./public
+
+# Set environment variables
+ENV NODE_ENV=production
+
 EXPOSE 3000
 
-# Run Express server
-CMD ["node", "src/index.js"]
+# Using a production process manager like PM2 is recommended
+RUN npm install -g pm2
+
+# Run Express server with PM2
+CMD ["pm2-runtime", "src/index.js"]

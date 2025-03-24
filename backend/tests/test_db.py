@@ -1,7 +1,7 @@
 # Quick test script to verify connection
-from psycopg import connect
+import psycopg2
 
-conn = connect(
+conn = psycopg2.connect(
     "postgresql://seedmart:seedmart@localhost:5432/seedmart"
 )
 with conn.cursor() as cursor:

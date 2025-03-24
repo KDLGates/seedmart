@@ -20,7 +20,7 @@ typing_extensions==4.12.2
 Werkzeug==2.3.7
 APScheduler==3.11.0
 gunicorn==21.2.0
-psycopg>=2.9.10
+psycopg2-binary>=2.9.6
 
 # Required for timezone support (used by APScheduler)
 pytz==2024.1
