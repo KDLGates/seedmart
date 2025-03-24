@@ -132,5 +132,5 @@ def get_seed_price_history(seed_id):
             
         return jsonify(result)
     except Exception as e:
-        current_app.logger.error(f"Error fetching price history: {str(e)}")
+        # current_app.logger.error(f"Error fetching price history: {str(e)}")
         return jsonify({"error": "Failed to retrieve price history"}), 500
