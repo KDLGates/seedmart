@@ -1,5 +1,8 @@
-from flask import Flask, jsonify
+import os
+import psycopg2
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 from config import Config
@@ -12,6 +15,9 @@ from apscheduler.triggers.interval import IntervalTrigger
 from services.market import MarketService
 import atexit
 import logging
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -71,6 +77,47 @@ atexit.register(lambda: scheduler.shutdown())
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "OK", "message": "SeedMart API is running"})
+
+# Use the internal database URL from environment variable
+DATABASE_URL = os.getenv('FLASK_DB_URL') or os.getenv('INT_DB_URL')
+
+def get_db_connection():
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return None
+
+@app.route('/api/price-history/<product_id>', methods=['GET'])
+def get_price_history(product_id):
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT date, price 
+            FROM price_history 
+            WHERE product_id = %s 
+            ORDER BY date
+        """, (product_id,))
+        
+        price_history = []
+        for row in cur.fetchall():
+            price_history.append({
+                'date': row[0].strftime('%Y-%m-%d'),
+                'price': float(row[1])
+            })
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify(price_history)
+    except Exception as e:
+        print(f"Error retrieving price history: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():
