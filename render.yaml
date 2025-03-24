@@ -37,4 +37,3 @@ services:
   - type: pgsql
     name: seedmart-db
     ipAllowList: []  # Only allow internal connections
-    plan: free # Specify the plan or remove for default
