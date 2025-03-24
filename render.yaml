@@ -1,0 +1,40 @@
+services:
+  # Backend API service
+  - type: web
+    name: seedmart-backend
+    env: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:$PORT --workers=4 --threads=2 --timeout=60 app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: seedmart-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.9.0
+
+  # Frontend service
+  - type: web
+    name: seedmart-frontend
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && node src/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_URL
+        value: https://seedmart-backend.onrender.com/api
+      - key: PORT
+        value: 3000
+      - key: NODE_VERSION
+        value: 18.0.0
+
+  # Database
+  - type: pgsql
+    name: seedmart-db
+    ipAllowList: []  # Only allow internal connections
+    plan: free # Specify the plan or remove for default
