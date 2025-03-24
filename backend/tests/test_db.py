@@ -2,7 +2,7 @@
 from psycopg import connect
 
 conn = connect(
-    "dbname=seedmart user=seedmart host=localhost password=seedmart"
+    "postgresql://seedmart:seedmart@localhost:5432/seedmart"
 )
 with conn.cursor() as cursor:
     cursor.execute("SELECT version();")
