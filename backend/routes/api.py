@@ -110,3 +110,27 @@ def delete_seed(id):
     db.session.delete(seed)
     db.session.commit()
     return jsonify({"message": "Seed deleted"}), 200
+
+@api.route('/price-history/<int:seed_id>', methods=['GET'])
+def get_seed_price_history(seed_id):
+    """Get price history for a specific seed"""
+    try:
+        # First check if the seed exists
+        seed = Seed.query.get(seed_id)
+        if not seed:
+            return jsonify({"error": "Seed not found"}), 404
+            
+        # Query the price history using SQLAlchemy
+        price_history = SeedPrice.query.filter_by(seed_id=seed_id).order_by(SeedPrice.recorded_at).all()
+        
+        result = []
+        for price in price_history:
+            result.append({
+                'date': price.recorded_at.strftime('%Y-%m-%d'),
+                'price': float(price.price)
+            })
+            
+        return jsonify(result)
+    except Exception as e:
+        current_app.logger.error(f"Error fetching price history: {str(e)}")
+        return jsonify({"error": "Failed to retrieve price history"}), 500

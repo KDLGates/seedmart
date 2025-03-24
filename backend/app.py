@@ -83,26 +83,66 @@ DATABASE_URL = os.getenv('FLASK_DB_URL') or os.getenv('INT_DB_URL')
 
 def get_db_connection():
     try:
+        # Log the connection attempt and URL (mask password for security)
+        masked_url = DATABASE_URL.replace(DATABASE_URL.split(':')[2].split('@')[0], '***')
+        logger.info(f"Attempting database connection to: {masked_url}")
+        
+        # Use psycopg2.connect instead of psycopg.connect (version compatibility)
         conn = psycopg2.connect(DATABASE_URL)
+        logger.info("Database connection successful")
         return conn
     except Exception as e:
-        print(f"Database connection error: {e}")
+        logger.error(f"Database connection error: {str(e)}")
         return None
 
 @app.route('/api/price-history/<product_id>', methods=['GET'])
 def get_price_history(product_id):
     try:
+        logger.info(f"Fetching price history for product_id: {product_id}")
+        
         conn = get_db_connection()
         if not conn:
+            logger.error("Failed to establish database connection")
             return jsonify({'error': 'Database connection failed'}), 500
         
         cur = conn.cursor()
-        cur.execute("""
-            SELECT date, price 
-            FROM price_history 
-            WHERE product_id = %s 
-            ORDER BY date
-        """, (product_id,))
+        
+        # First check if the product exists
+        cur.execute("SELECT id FROM seed WHERE id = %s", (product_id,))
+        if cur.fetchone() is None:
+            cur.close()
+            conn.close()
+            logger.warning(f"Product with ID {product_id} not found")
+            return jsonify({'error': 'Product not found'}), 404
+        
+        # Check if we're using seed_price or price_history table
+        try:
+            # Try with seed_price table (based on models.py SeedPrice class)
+            cur.execute("""
+                SELECT recorded_at, price 
+                FROM seed_price 
+                WHERE seed_id = %s 
+                ORDER BY recorded_at
+            """, (product_id,))
+            
+            if cur.rowcount == 0:
+                logger.info(f"No data found in seed_price for product {product_id}, checking price_history")
+                # If no rows, try with price_history table
+                cur.execute("""
+                    SELECT date, price 
+                    FROM price_history 
+                    WHERE product_id = %s 
+                    ORDER BY date
+                """, (product_id,))
+        except Exception as e:
+            logger.error(f"Error in first query attempt: {str(e)}")
+            # Fallback to original query
+            cur.execute("""
+                SELECT date, price 
+                FROM price_history 
+                WHERE product_id = %s 
+                ORDER BY date
+            """, (product_id,))
         
         price_history = []
         for row in cur.fetchall():
@@ -114,9 +154,10 @@ def get_price_history(product_id):
         cur.close()
         conn.close()
         
+        logger.info(f"Successfully retrieved {len(price_history)} price history records")
         return jsonify(price_history)
     except Exception as e:
-        print(f"Error retrieving price history: {e}")
+        logger.error(f"Error retrieving price history: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

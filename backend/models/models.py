@@ -80,22 +80,44 @@ class Seed(db.Model):
         }
 
 class SeedPrice(db.Model):
-    __tablename__ = "seed_prices"
-    
+    __tablename__ = 'seed_price'
+
     id = db.Column(db.Integer, primary_key=True)
-    seed_id = db.Column(db.Integer, db.ForeignKey('seeds.id'), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    volume = db.Column(db.Integer, default=0)  # Trading volume for the day
-    recorded_at = db.Column(db.DateTime, default=func.now())
-    
-    # Relationship to Seed
-    seed = db.relationship("Seed", back_populates="prices")
-    
+    seed_id = db.Column(db.Integer, db.ForeignKey('seed.id'), nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    volume = db.Column(db.Integer)
+    recorded_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+
+    seed = db.relationship('Seed', backref=db.backref('price_history', lazy=True))
+
+    def __repr__(self):
+        return f'<SeedPrice {self.id}: {self.price} for seed {self.seed_id}>'
+
     def to_dict(self):
         return {
             'id': self.id,
             'seed_id': self.seed_id,
-            'price': self.price,
+            'price': float(self.price),
             'volume': self.volume,
             'recorded_at': self.recorded_at.isoformat() if self.recorded_at else None
+        }
+
+# Legacy price_history table model for compatibility
+class PriceHistory(db.Model):
+    __tablename__ = 'price_history'
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+
+    def __repr__(self):
+        return f'<PriceHistory {self.id}: {self.price} for product {self.product_id}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'product_id': self.product_id,
+            'date': self.date.isoformat() if self.date else None,
+            'price': float(self.price)
         }
