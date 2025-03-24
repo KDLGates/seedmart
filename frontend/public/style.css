@@ -1726,3 +1726,250 @@ select:focus {
   pointer-events: auto !important; /* Ensure click events work */
   cursor: not-allowed !important;
 }
+
+/* Portfolio Page Styles */
+.portfolio-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.portfolio-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1.5rem;
+}
+
+.portfolio-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.portfolio-card-title {
+  margin-bottom: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.portfolio-add-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.portfolio-add-btn:hover {
+  background: #1e56ff;
+}
+
+.portfolio-overview {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.portfolio-stat {
+  flex: 1;
+}
+
+.portfolio-stat-value {
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.portfolio-stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.portfolio-holdings {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.portfolio-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.portfolio-table th {
+  text-align: left;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.portfolio-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.portfolio-table tr:last-child td {
+  border-bottom: none;
+}
+
+.portfolio-table tr:hover {
+  background-color: var(--hover-bg);
+}
+
+.portfolio-item-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portfolio-item-icon {
+  color: var(--accent-color);
+}
+
+.portfolio-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem 0;
+}
+
+.portfolio-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  margin-left: auto;
+  padding: 0.5rem;
+}
+
+.user-avatar {
+  background: var(--accent-color);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
+.user-name {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.dropdown-icon {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 200px;
+  z-index: 10;
+  display: none;
+}
+
+.user-dropdown.active {
+  display: block;
+}
+
+.user-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-dropdown ul li {
+  margin: 0;
+}
+
+.user-dropdown ul li a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.user-dropdown ul li a:hover {
+  background-color: var(--hover-bg);
+}
+
+.logout-btn {
+  color: var(--danger-color) !important;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Responsive adjustments for portfolio page */
+@media (max-width: 768px) {
+  .portfolio-overview {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .portfolio-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .portfolio-table th,
+  .portfolio-table td {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+}
