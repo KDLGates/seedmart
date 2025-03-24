@@ -1,9 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from config import Config
 
-DATABASE_URI = 'your_database_uri_here'
-
-engine = create_engine(DATABASE_URI)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 Session = sessionmaker(bind=engine)
 
 def get_session():
