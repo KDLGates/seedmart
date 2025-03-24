@@ -79,18 +79,22 @@ def health_check():
     return jsonify({"status": "OK", "message": "SeedMart API is running"})
 
 # Use the internal database URL from environment variable
-DATABASE_URL = os.getenv('FLASK_DB_URL') or os.getenv('INT_DB_URL')
+DATABASE_URL = os.getenv('DATABASE_URL') or os.getenv('RENDER_DATABASE_URL') or os.getenv('FLASK_DB_URL')
 
 def get_db_connection():
     try:
         # Log the connection attempt and URL (mask password for security)
-        masked_url = DATABASE_URL.replace(DATABASE_URL.split(':')[2].split('@')[0], '***')
-        logger.info(f"Attempting database connection to: {masked_url}")
-        
-        # Use psycopg2.connect instead of psycopg.connect (version compatibility)
-        conn = psycopg2.connect(DATABASE_URL)
-        logger.info("Database connection successful")
-        return conn
+        if DATABASE_URL:
+            masked_url = DATABASE_URL.replace(DATABASE_URL.split(':')[2].split('@')[0], '***') if '@' in DATABASE_URL else "URL-without-credentials"
+            logger.info(f"Attempting database connection to: {masked_url}")
+            
+            # Use psycopg2.connect instead of psycopg.connect (version compatibility)
+            conn = psycopg2.connect(DATABASE_URL)
+            logger.info("Database connection successful")
+            return conn
+        else:
+            logger.error("No database URL configured")
+            return None
     except Exception as e:
         logger.error(f"Database connection error: {str(e)}")
         return None

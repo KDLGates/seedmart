@@ -12,14 +12,18 @@ services:
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
-          name: seedmart-db
+          name: seedmart_qndr
+          property: connectionString
+      - key: INT_DB_URL  # Add this to match your config.py
+        fromDatabase:
+          name: seedmart_qndr
           property: connectionString
       - key: PYTHON_VERSION
         value: 3.9.0
 
   # Frontend service
   - type: web
-    name: seedmart-frontend
+    name: seedmart
     env: node
     buildCommand: cd frontend && npm install
     startCommand: cd frontend && node src/index.js
@@ -27,13 +31,15 @@ services:
       - key: NODE_ENV
         value: production
       - key: API_URL
-        value: https://seedmart-backend.onrender.com/api
-      - key: PORT
-        value: 3000
+        value: https://dpg-cvg4as0gph6c73bgqagg-a/api
       - key: NODE_VERSION
         value: 18.0.0
 
   # Database
   - type: pgsql
-    name: seedmart-db
+    name: seedmart_qndr
     ipAllowList: []  # Only allow internal connections
+    plan: starter
+    database: seedmart
+    user: kdlgates
+    password: 1iq8YdrAP1zABQRnxyGxLOvrWlMfnerS
